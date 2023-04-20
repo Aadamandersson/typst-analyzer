@@ -12,6 +12,9 @@ pub enum SyntaxKind {
     /// An integer.
     /// E.g., `123`.
     Int,
+    /// A float.
+    /// E.g., `12.3`
+    Float,
     /// `+`
     Plus,
     /// `-`
@@ -112,6 +115,8 @@ pub enum SyntaxKind {
     Eof,
 }
 
+const EOF_CHAR: char = '\0';
+
 /// Takes the source text and splits it into tokens.
 pub(crate) struct Lexer<'s> {
     /// The characters in the source text.
@@ -129,111 +134,102 @@ impl<'s> Lexer<'s> {
 
     /// Returns the next `SyntaxKind` and its length.
     pub(crate) fn next(&mut self) -> (u32, SyntaxKind) {
-        if let Some(&ch) = self.chars.peek() {
-            let start = self.pos;
-            self.bump();
-            let kind = match ch {
-                '0'..='9' => self.lex_numeric(),
-                '+' => {
-                    if self.eat('=') {
-                        SyntaxKind::PlusEq
-                    } else {
-                        SyntaxKind::Plus
-                    }
+        let first = self.peek();
+        let start = self.pos;
+        self.bump();
+        let kind = match first {
+            '0'..='9' => self.lex_numeric(),
+            '+' => {
+                if self.eat('=') {
+                    SyntaxKind::PlusEq
+                } else {
+                    SyntaxKind::Plus
                 }
-                '-' => {
-                    if self.eat('=') {
-                        SyntaxKind::MinusEq
-                    } else {
-                        SyntaxKind::Minus
-                    }
+            }
+            '-' => {
+                if self.eat('=') {
+                    SyntaxKind::MinusEq
+                } else {
+                    SyntaxKind::Minus
                 }
-                '*' => {
-                    if self.eat('=') {
-                        SyntaxKind::StarEq
-                    } else {
-                        SyntaxKind::Star
-                    }
+            }
+            '*' => {
+                if self.eat('=') {
+                    SyntaxKind::StarEq
+                } else {
+                    SyntaxKind::Star
                 }
-                '/' => {
-                    if self.eat('=') {
-                        SyntaxKind::SlashEq
-                    } else {
-                        SyntaxKind::Slash
-                    }
+            }
+            '/' => {
+                if self.eat('=') {
+                    SyntaxKind::SlashEq
+                } else {
+                    SyntaxKind::Slash
                 }
-                '!' if self.eat('=') => SyntaxKind::Ne,
-                '=' => {
-                    if self.eat('=') {
-                        SyntaxKind::EqEq
-                    } else if self.eat('>') {
-                        SyntaxKind::Arrow
-                    } else {
-                        SyntaxKind::Eq
-                    }
+            }
+            '!' if self.eat('=') => SyntaxKind::Ne,
+            '=' => {
+                if self.eat('=') {
+                    SyntaxKind::EqEq
+                } else if self.eat('>') {
+                    SyntaxKind::Arrow
+                } else {
+                    SyntaxKind::Eq
                 }
-                '<' => {
-                    if self.eat('=') {
-                        SyntaxKind::Le
-                    } else {
-                        SyntaxKind::Lt
-                    }
+            }
+            '<' => {
+                if self.eat('=') {
+                    SyntaxKind::Le
+                } else {
+                    SyntaxKind::Lt
                 }
-                '>' => {
-                    if self.eat('=') {
-                        SyntaxKind::Ge
-                    } else {
-                        SyntaxKind::Gt
-                    }
+            }
+            '>' => {
+                if self.eat('=') {
+                    SyntaxKind::Ge
+                } else {
+                    SyntaxKind::Gt
                 }
-                '.' => {
-                    if self.eat('.') {
-                        SyntaxKind::DotDot
-                    } else {
-                        SyntaxKind::Dot
-                    }
+            }
+            '.' => {
+                if self.eat('.') {
+                    SyntaxKind::DotDot
+                } else if self.peek().is_ascii_digit() {
+                    self.lex_numeric()
+                } else {
+                    SyntaxKind::Dot
                 }
-                '(' => SyntaxKind::OpenParen,
-                '[' => SyntaxKind::OpenBrack,
-                '{' => SyntaxKind::OpenBrace,
-                ')' => SyntaxKind::CloseParen,
-                ']' => SyntaxKind::CloseBrack,
-                '}' => SyntaxKind::CloseBrace,
-                ',' => SyntaxKind::Comma,
-                ';' => SyntaxKind::Semi,
-                ':' => SyntaxKind::Colon,
-                '$' => SyntaxKind::Dollar,
-                '`' => SyntaxKind::Backtick,
-                _ => {
-                    if Self::is_id_start(ch) {
-                        self.lex_ident(ch)
-                    } else if ch.is_whitespace() {
-                        self.eat_while(|c| c.is_whitespace());
-                        SyntaxKind::Whitespace
-                    } else {
-                        SyntaxKind::Unknown
-                    }
+            }
+            '(' => SyntaxKind::OpenParen,
+            '[' => SyntaxKind::OpenBrack,
+            '{' => SyntaxKind::OpenBrace,
+            ')' => SyntaxKind::CloseParen,
+            ']' => SyntaxKind::CloseBrack,
+            '}' => SyntaxKind::CloseBrace,
+            ',' => SyntaxKind::Comma,
+            ';' => SyntaxKind::Semi,
+            ':' => SyntaxKind::Colon,
+            '$' => SyntaxKind::Dollar,
+            '`' => SyntaxKind::Backtick,
+            '\0' => SyntaxKind::Eof,
+            _ => {
+                if Self::is_id_start(first) {
+                    self.lex_ident(first)
+                } else if first.is_whitespace() {
+                    self.eat_while(|c| c.is_whitespace());
+                    SyntaxKind::Whitespace
+                } else {
+                    SyntaxKind::Unknown
                 }
-            };
+            }
+        };
 
-            let len = (self.pos - start) as u32;
-            (len, kind)
-        } else {
-            (0, SyntaxKind::Eof)
-        }
+        let len = (self.pos - start) as u32;
+        (len, kind)
     }
 
-    fn lex_ident(&mut self, ch: char) -> SyntaxKind {
-        let mut ident = String::from(ch);
-        while let Some(&ch) = self.chars.peek() {
-            if !Self::is_id_continue(ch) {
-                break;
-            }
-
-            ident.push(ch);
-            self.bump();
-        }
-
+    fn lex_ident(&mut self, first: char) -> SyntaxKind {
+        let ident = self.accumulate(first, Self::is_id_continue);
         match &ident[..] {
             "as" => SyntaxKind::As,
             "auto" => SyntaxKind::Auto,
@@ -260,16 +256,12 @@ impl<'s> Lexer<'s> {
         SyntaxKind::Int
     }
 
-    /// Advances to the next character and returns `true` if
-    /// the next token matches the given character.
+    /// Returns `true` and bumps the lexer if the next token
+    /// matches the given character.
     fn eat(&mut self, ch: char) -> bool {
-        if let Some(&peek_ch) = self.chars.peek() {
-            if ch == peek_ch {
-                self.bump();
-                true
-            } else {
-                false
-            }
+        if ch == self.peek() {
+            self.bump();
+            true
         } else {
             false
         }
@@ -277,12 +269,24 @@ impl<'s> Lexer<'s> {
 
     /// Eats character while `matches` returns `true`.
     fn eat_while(&mut self, matches: impl Fn(char) -> bool) {
+        while matches(self.peek()) {
+            self.bump();
+        }
+    }
+
+    /// Accumulates characters into a string while `matches` returns `true`.
+    fn accumulate(&mut self, ch: char, matches: impl Fn(char) -> bool) -> String {
+        let mut string = String::from(ch);
         while let Some(&ch) = self.chars.peek() {
             if !matches(ch) {
                 break;
             }
+
+            string.push(ch);
             self.bump();
         }
+
+        string
     }
 
     /// Returns `true` if the given character can start an identifier.
@@ -293,6 +297,12 @@ impl<'s> Lexer<'s> {
     /// Returns `true` if the given character can continue an identifier.
     fn is_id_continue(ch: char) -> bool {
         ch.is_xid_continue() || ch == '_' || ch == '-'
+    }
+
+    /// Returns the next character without bumping the lexer.
+    /// If we have reached EOF, `EOF_CHAR` is returned.
+    fn peek(&mut self) -> char {
+        *self.chars.peek().unwrap_or(&EOF_CHAR)
     }
 
     /// Bumps the lexer to the next position.
