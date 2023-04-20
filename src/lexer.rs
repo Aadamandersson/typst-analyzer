@@ -12,8 +12,38 @@ pub enum SyntaxKind {
     /// An integer.
     /// E.g., `123`.
     Int,
-    /// E.g., (' ', '\t', '\n', etc...)
-    Whitespace,
+    /// `+`
+    Plus,
+    /// `-`
+    Minus,
+    /// `*`
+    Star,
+    /// `/`
+    Slash,
+    /// `!`
+    Bang,
+    /// `=`
+    Eq,
+    /// `<`
+    Lt,
+    /// `>`
+    Gt,
+    /// `+=`
+    PlusEq,
+    /// `-=`
+    MinusEq,
+    /// `*=`
+    StarEq,
+    /// `/=`
+    SlashEq,
+    /// `!=`
+    Ne,
+    /// `==`
+    EqEq,
+    /// `<=`
+    Le,
+    /// `>=`
+    Ge,
     /// `as` keyword.
     As,
     /// `auto` keyword
@@ -46,6 +76,8 @@ pub enum SyntaxKind {
     Show,
     /// `while` keyword.
     While,
+    /// E.g., (' ', '\t', '\n', etc...)
+    Whitespace,
     /// An unknown character to the lexer.
     Unknown,
     /// End of file.
@@ -74,6 +106,56 @@ impl<'s> Lexer<'s> {
             self.bump();
             let kind = match ch {
                 '0'..='9' => self.lex_numeric(),
+                '+' => {
+                    if self.eat_if('=') {
+                        SyntaxKind::PlusEq
+                    } else {
+                        SyntaxKind::Plus
+                    }
+                }
+                '-' => {
+                    if self.eat_if('=') {
+                        SyntaxKind::MinusEq
+                    } else {
+                        SyntaxKind::Minus
+                    }
+                }
+                '*' => {
+                    if self.eat_if('=') {
+                        SyntaxKind::StarEq
+                    } else {
+                        SyntaxKind::Star
+                    }
+                }
+                '/' => {
+                    if self.eat_if('=') {
+                        SyntaxKind::SlashEq
+                    } else {
+                        SyntaxKind::Slash
+                    }
+                }
+                '!' if self.eat_if('=') => SyntaxKind::Ne,
+                '=' => {
+                    if self.eat_if('=') {
+                        SyntaxKind::EqEq
+                    } else {
+                        SyntaxKind::Eq
+                    }
+                }
+                '<' => {
+                    if self.eat_if('=') {
+                        SyntaxKind::Le
+                    } else {
+                        SyntaxKind::Lt
+                    }
+                }
+                '>' => {
+                    if self.eat_if('=') {
+                        SyntaxKind::Ge
+                    } else {
+                        SyntaxKind::Gt
+                    }
+                }
                 _ => {
                     if Self::is_id_start(ch) {
                         self.lex_ident(ch)
@@ -128,6 +210,21 @@ impl<'s> Lexer<'s> {
     fn lex_numeric(&mut self) -> SyntaxKind {
         self.eat_while(|ch| matches!(ch, '0'..='9'));
         SyntaxKind::Int
+    }
+
+    /// Advances to the next character and returns `true` if
+    /// the next token matches the given character.
+    fn eat_if(&mut self, ch: char) -> bool {
+        if let Some(&peek_ch) = self.chars.peek() {
+            if ch == peek_ch {
+                self.bump();
+                true
+            } else {
+                false
+            }
+        } else {
+            false
+        }
     }
 
     /// Eats character while `matches` returns `true`.
@@ -194,6 +291,11 @@ mod tests {
         check("set", expect![["Set 3"]]);
         check("show", expect![["Show 4"]]);
         check("while", expect![["While 5"]]);
+    }
+
+    #[test]
+    fn test_op() {
+        check("+ /=", expect![["Plus 1Whitespace 1SlashEq 2"]]);
     }
 
     #[test]
