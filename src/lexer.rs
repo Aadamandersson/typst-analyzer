@@ -28,6 +28,8 @@ pub enum SyntaxKind {
     Lt,
     /// `>`
     Gt,
+    /// `.`
+    Dot,
     /// `+=`
     PlusEq,
     /// `-=`
@@ -40,10 +42,36 @@ pub enum SyntaxKind {
     Ne,
     /// `==`
     EqEq,
+    /// `=>`
+    Arrow,
     /// `<=`
     Le,
     /// `>=`
     Ge,
+    /// `..`
+    DotDot,
+    /// `(`
+    OpenParen,
+    /// `[´
+    OpenBrack,
+    /// `{`
+    OpenBrace,
+    /// `)`
+    CloseParen,
+    /// `]`
+    CloseBrack,
+    /// `}`
+    CloseBrace,
+    /// `,`
+    Comma,
+    /// `;`
+    Semi,
+    /// `:`
+    Colon,
+    /// `$`
+    Dollar,
+    /// ```
+    Backtick,
     /// `as` keyword.
     As,
     /// `auto` keyword
@@ -107,55 +135,75 @@ impl<'s> Lexer<'s> {
             let kind = match ch {
                 '0'..='9' => self.lex_numeric(),
                 '+' => {
-                    if self.eat_if('=') {
+                    if self.eat('=') {
                         SyntaxKind::PlusEq
                     } else {
                         SyntaxKind::Plus
                     }
                 }
                 '-' => {
-                    if self.eat_if('=') {
+                    if self.eat('=') {
                         SyntaxKind::MinusEq
                     } else {
                         SyntaxKind::Minus
                     }
                 }
                 '*' => {
-                    if self.eat_if('=') {
+                    if self.eat('=') {
                         SyntaxKind::StarEq
                     } else {
                         SyntaxKind::Star
                     }
                 }
                 '/' => {
-                    if self.eat_if('=') {
+                    if self.eat('=') {
                         SyntaxKind::SlashEq
                     } else {
                         SyntaxKind::Slash
                     }
                 }
-                '!' if self.eat_if('=') => SyntaxKind::Ne,
+                '!' if self.eat('=') => SyntaxKind::Ne,
                 '=' => {
-                    if self.eat_if('=') {
+                    if self.eat('=') {
                         SyntaxKind::EqEq
+                    } else if self.eat('>') {
+                        SyntaxKind::Arrow
                     } else {
                         SyntaxKind::Eq
                     }
                 }
                 '<' => {
-                    if self.eat_if('=') {
+                    if self.eat('=') {
                         SyntaxKind::Le
                     } else {
                         SyntaxKind::Lt
                     }
                 }
                 '>' => {
-                    if self.eat_if('=') {
+                    if self.eat('=') {
                         SyntaxKind::Ge
                     } else {
                         SyntaxKind::Gt
                     }
                 }
+                '.' => {
+                    if self.eat('.') {
+                        SyntaxKind::DotDot
+                    } else {
+                        SyntaxKind::Dot
+                    }
+                }
+                '(' => SyntaxKind::OpenParen,
+                '[' => SyntaxKind::OpenBrack,
+                '{' => SyntaxKind::OpenBrace,
+                ')' => SyntaxKind::CloseParen,
+                ']' => SyntaxKind::CloseBrack,
+                '}' => SyntaxKind::CloseBrace,
+                ',' => SyntaxKind::Comma,
+                ';' => SyntaxKind::Semi,
+                ':' => SyntaxKind::Colon,
+                '$' => SyntaxKind::Dollar,
+                '`' => SyntaxKind::Backtick,
                 _ => {
                     if Self::is_id_start(ch) {
                         self.lex_ident(ch)
@@ -214,7 +262,7 @@ impl<'s> Lexer<'s> {
 
     /// Advances to the next character and returns `true` if
     /// the next token matches the given character.
-    fn eat_if(&mut self, ch: char) -> bool {
+    fn eat(&mut self, ch: char) -> bool {
         if let Some(&peek_ch) = self.chars.peek() {
             if ch == peek_ch {
                 self.bump();
