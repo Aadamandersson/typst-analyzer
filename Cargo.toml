@@ -7,3 +7,4 @@ edition = "2021"
 
 [dependencies]
 expect-test = "1.4.1"
+unicode-xid = "0.2.4"

@@ -1,2 +1,0 @@
-mod lexer;
-fn main() {}

@@ -1,15 +1,51 @@
-use expect_test::expect;
+#![allow(dead_code)]
 use std::{iter::Peekable, str::Chars};
+use unicode_xid::UnicodeXID;
 
 /// Represents all possible syntactic constructs for `Typst`.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 #[repr(u8)]
 pub enum SyntaxKind {
+    /// An identifier.
+    /// E.g., `foo`.
+    Ident,
     /// An integer.
     /// E.g., `123`.
     Int,
     /// E.g., (' ', '\t', '\n', etc...)
     Whitespace,
+    /// `as` keyword.
+    As,
+    /// `auto` keyword
+    Auto,
+    /// `break` keyword.
+    Break,
+    /// `continue` keyword.
+    Continue,
+    /// `else` keyword.
+    Else,
+    /// `for` keyword.
+    For,
+    /// `if` keyword.
+    If,
+    /// `import` keyword.
+    Import,
+    /// `in` keyword.
+    In,
+    /// `include` keyword.
+    Include,
+    /// `let` keyword.
+    Let,
+    /// `none` keyword
+    None,
+    /// `return` keyword.
+    Return,
+    /// `set` keyword.
+    Set,
+    /// `show` keyword.
+    Show,
+    /// `while` keyword.
+    While,
     /// An unknown character to the lexer.
     Unknown,
     /// End of file.
@@ -17,7 +53,7 @@ pub enum SyntaxKind {
 }
 
 /// Takes the source text and splits it into tokens.
-struct Lexer<'s> {
+pub(crate) struct Lexer<'s> {
     /// The characters in the source text.
     chars: Peekable<Chars<'s>>,
     /// The current position in the source text.
@@ -26,20 +62,22 @@ struct Lexer<'s> {
 
 impl<'s> Lexer<'s> {
     /// Constructs a new `Lexer` with the given source text.
-    fn new(src: &'s str) -> Self {
+    pub(crate) fn new(src: &'s str) -> Self {
         let chars = src.chars().peekable();
         Self { chars, pos: 0 }
     }
 
     /// Returns the next `SyntaxKind` and its length.
-    fn next(&mut self) -> (u32, SyntaxKind) {
+    pub(crate) fn next(&mut self) -> (u32, SyntaxKind) {
         if let Some(&ch) = self.chars.peek() {
             let start = self.pos;
             self.bump();
             let kind = match ch {
                 '0'..='9' => self.lex_numeric(),
                 _ => {
-                    if ch.is_whitespace() {
+                    if Self::is_id_start(ch) {
+                        self.lex_ident(ch)
+                    } else if ch.is_whitespace() {
                         self.eat_while(|c| c.is_whitespace());
                         SyntaxKind::Whitespace
                     } else {
@@ -55,7 +93,38 @@ impl<'s> Lexer<'s> {
         }
     }
 
-    /// Lexes a numerical value.
+    fn lex_ident(&mut self, ch: char) -> SyntaxKind {
+        let mut ident = String::from(ch);
+        while let Some(&ch) = self.chars.peek() {
+            if !Self::is_id_continue(ch) {
+                break;
+            }
+
+            ident.push(ch);
+            self.bump();
+        }
+
+        match &ident[..] {
+            "as" => SyntaxKind::As,
+            "auto" => SyntaxKind::Auto,
+            "break" => SyntaxKind::Break,
+            "continue" => SyntaxKind::Continue,
+            "else" => SyntaxKind::Else,
+            "for" => SyntaxKind::For,
+            "if" => SyntaxKind::If,
+            "import" => SyntaxKind::Import,
+            "in" => SyntaxKind::In,
+            "include" => SyntaxKind::Include,
+            "let" => SyntaxKind::Let,
+            "none" => SyntaxKind::None,
+            "return" => SyntaxKind::Return,
+            "set" => SyntaxKind::Set,
+            "show" => SyntaxKind::Show,
+            "while" => SyntaxKind::While,
+            _ => SyntaxKind::Ident,
+        }
+    }
+
     fn lex_numeric(&mut self) -> SyntaxKind {
         self.eat_while(|ch| matches!(ch, '0'..='9'));
         SyntaxKind::Int
@@ -71,6 +140,16 @@ impl<'s> Lexer<'s> {
         }
     }
 
+    /// Returns `true` if the given character can start an identifier.
+    fn is_id_start(ch: char) -> bool {
+        ch.is_xid_start() || ch == '_'
+    }
+
+    /// Returns `true` if the given character can continue an identifier.
+    fn is_id_continue(ch: char) -> bool {
+        ch.is_xid_continue() || ch == '_' || ch == '-'
+    }
+
     /// Bumps the lexer to the next position.
     fn bump(&mut self) {
         if self.chars.next().is_some() {
@@ -82,11 +161,39 @@ impl<'s> Lexer<'s> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use expect_test::expect;
 
     #[test]
     fn test_int() {
         check("1", expect![["Int 1"]]);
         check("123", expect![["Int 3"]]);
+    }
+
+    #[test]
+    fn test_ident() {
+        check("_foo", expect![["Ident 4"]]);
+        check("foo-bar", expect![["Ident 7"]]);
+        check("_foo_bar123", expect![["Ident 11"]]);
+    }
+
+    #[test]
+    fn test_keyword() {
+        check("as", expect![["As 2"]]);
+        check("auto", expect![["Auto 4"]]);
+        check("break", expect![["Break 5"]]);
+        check("continue", expect![["Continue 8"]]);
+        check("else", expect![["Else 4"]]);
+        check("for", expect![["For 3"]]);
+        check("if", expect![["If 2"]]);
+        check("import", expect![["Import 6"]]);
+        check("in", expect![["In 2"]]);
+        check("include", expect![["Include 7"]]);
+        check("let", expect![["Let 3"]]);
+        check("none", expect![["None 4"]]);
+        check("return", expect![["Return 6"]]);
+        check("set", expect![["Set 3"]]);
+        check("show", expect![["Show 4"]]);
+        check("while", expect![["While 5"]]);
     }
 
     #[test]
