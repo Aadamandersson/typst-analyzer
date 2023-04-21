@@ -136,7 +136,7 @@ impl<'s> Lexer<'s> {
         let start = self.pos;
         self.bump();
         let kind = match first {
-            '0'..='9' => self.lex_numeric(),
+            '0'..='9' => self.lex_numeric(first),
             '+' => {
                 if self.eat('=') {
                     SyntaxKind::PlusEq
@@ -193,7 +193,7 @@ impl<'s> Lexer<'s> {
                 if self.eat('.') {
                     SyntaxKind::DotDot
                 } else if self.peek().is_ascii_digit() {
-                    self.lex_numeric()
+                    self.lex_numeric(first)
                 } else {
                     SyntaxKind::Dot
                 }
@@ -249,13 +249,28 @@ impl<'s> Lexer<'s> {
         }
     }
 
-    fn lex_numeric(&mut self) -> SyntaxKind {
+    fn lex_numeric(&mut self, first: char) -> SyntaxKind {
+        // TODO:
+        // * binary, octal and hexadecimal bases
+        // * exponents & suffixes
+        // * error reporting
+
+        if first == '.' {
+            self.eat_while(|ch| matches!(ch, '0'..='9'));
+            return SyntaxKind::Float;
+        }
+
         self.eat_while(|ch| matches!(ch, '0'..='9'));
+        if self.eat('.') {
+            self.eat_while(|ch| matches!(ch, '0'..='9'));
+            return SyntaxKind::Float;
+        }
+
         SyntaxKind::Int
     }
 
     /// Returns `true` and bumps the lexer if the next token
-    /// matches the given character.
+    /// is the given character.
     fn eat(&mut self, ch: char) -> bool {
         if ch == self.peek() {
             self.bump();
@@ -273,8 +288,9 @@ impl<'s> Lexer<'s> {
     }
 
     /// Accumulates characters into a string while `matches` returns `true`.
-    fn accumulate(&mut self, ch: char, matches: impl Fn(char) -> bool) -> String {
-        let mut string = String::from(ch);
+    fn accumulate(&mut self, first: char, matches: impl Fn(char) -> bool) -> String {
+        let mut string = String::from(first);
+
         while let Some(&ch) = self.chars.peek() {
             if !matches(ch) {
                 break;
@@ -317,9 +333,12 @@ mod tests {
     use expect_test::expect;
 
     #[test]
-    fn test_int() {
+    fn test_number() {
         check("1", expect![["Int 1"]]);
         check("123", expect![["Int 3"]]);
+        check(".12", expect![["Float 3"]]);
+        check("0.1", expect![["Float 3"]]);
+        check("1.23", expect![["Float 4"]]);
     }
 
     #[test]
