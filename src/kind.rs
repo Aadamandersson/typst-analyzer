@@ -106,6 +106,8 @@ pub enum SyntaxKind {
     While,
     /// E.g., (' ', '\t', '\n', etc...)
     Whitespace,
+    /// Represents code in the source text.
+    Code,
     /// Lex or parse error.
     Error,
     /// End of file.
