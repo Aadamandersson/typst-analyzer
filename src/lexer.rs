@@ -15,6 +15,9 @@ pub enum SyntaxKind {
     /// A float.
     /// E.g., `12.3`
     Float,
+    /// A string.
+    /// E.g., `"foo`"
+    String,
     /// `+`
     Plus,
     /// `-`
@@ -107,8 +110,8 @@ pub enum SyntaxKind {
     While,
     /// E.g., (' ', '\t', '\n', etc...)
     Whitespace,
-    /// An unknown character to the lexer.
-    Unknown,
+    /// Lex or parse error.
+    Error,
     /// End of file.
     Eof,
 }
@@ -137,6 +140,7 @@ impl<'s> Lexer<'s> {
         self.bump();
         let kind = match first {
             '0'..='9' => self.lex_numeric(first),
+            '"' => self.lex_string(),
             '+' => {
                 if self.eat('=') {
                     SyntaxKind::PlusEq
@@ -217,7 +221,7 @@ impl<'s> Lexer<'s> {
                     self.eat_while(|c| c.is_whitespace());
                     SyntaxKind::Whitespace
                 } else {
-                    SyntaxKind::Unknown
+                    SyntaxKind::Error
                 }
             }
         };
@@ -251,7 +255,7 @@ impl<'s> Lexer<'s> {
 
     fn lex_numeric(&mut self, first: char) -> SyntaxKind {
         // TODO:
-        // * binary, octal and hexadecimal bases
+        // * binary and octal bases
         // * exponents & suffixes
         // * error reporting
 
@@ -269,6 +273,17 @@ impl<'s> Lexer<'s> {
         SyntaxKind::Int
     }
 
+    fn lex_string(&mut self) -> SyntaxKind {
+        // TODO: support escape?
+        self.eat_while(|ch| ch != '"');
+        if !self.eat('"') {
+            // TODO: report error
+            SyntaxKind::Error
+        } else {
+            SyntaxKind::String
+        }
+    }
+
     /// Returns `true` and bumps the lexer if the next token
     /// is the given character.
     fn eat(&mut self, ch: char) -> bool {
@@ -282,7 +297,11 @@ impl<'s> Lexer<'s> {
 
     /// Eats character while `matches` returns `true`.
     fn eat_while(&mut self, matches: impl Fn(char) -> bool) {
-        while matches(self.peek()) {
+        while let Some(&ch) = self.chars.peek() {
+            if !matches(ch) {
+                break;
+            }
+
             self.bump();
         }
     }
@@ -333,6 +352,13 @@ mod tests {
     use expect_test::expect;
 
     #[test]
+    fn test_ident() {
+        check("_foo", expect![["Ident 4"]]);
+        check("foo-bar", expect![["Ident 7"]]);
+        check("_foo_bar123", expect![["Ident 11"]]);
+    }
+
+    #[test]
     fn test_number() {
         check("1", expect![["Int 1"]]);
         check("123", expect![["Int 3"]]);
@@ -342,10 +368,10 @@ mod tests {
     }
 
     #[test]
-    fn test_ident() {
-        check("_foo", expect![["Ident 4"]]);
-        check("foo-bar", expect![["Ident 7"]]);
-        check("_foo_bar123", expect![["Ident 11"]]);
+    fn test_string() {
+        check(r#""foo""#, expect![["String 5"]]);
+        check(r#""foo" "bar""#, expect![["String 5Whitespace 1String 5"]]);
+        check(r#""foo"#, expect![["Error 4"]]);
     }
 
     #[test]
