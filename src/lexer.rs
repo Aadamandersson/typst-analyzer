@@ -23,8 +23,6 @@ pub enum SyntaxKind {
     Star,
     /// `/`
     Slash,
-    /// `!`
-    Bang,
     /// `=`
     Eq,
     /// `<`
