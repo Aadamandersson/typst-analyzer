@@ -72,6 +72,8 @@ pub enum SyntaxKind {
     Dollar,
     /// ```
     Backtick,
+    /// `and` keyword.
+    And,
     /// `as` keyword.
     As,
     /// `auto` keyword
@@ -82,6 +84,8 @@ pub enum SyntaxKind {
     Continue,
     /// `else` keyword.
     Else,
+    /// `false` keyword.
+    False,
     /// `for` keyword.
     For,
     /// `if` keyword.
@@ -96,12 +100,18 @@ pub enum SyntaxKind {
     Let,
     /// `none` keyword
     None,
+    /// `not` keyword.
+    Not,
+    /// `or` keyword.
+    Or,
     /// `return` keyword.
     Return,
     /// `set` keyword.
     Set,
     /// `show` keyword.
     Show,
+    /// `true` keyword.
+    True,
     /// `while` keyword.
     While,
     /// E.g., (' ', '\t', '\n', etc...)
@@ -112,6 +122,8 @@ pub enum SyntaxKind {
     Literal,
     /// E.g., `1 + 2`
     BinaryExpr,
+    /// E.g., `-1`
+    UnaryExpr,
     /// Lex or parse error.
     Error,
     /// End of file.

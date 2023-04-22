@@ -126,11 +126,13 @@ impl<'s> Lexer<'s> {
     fn lex_ident(&mut self, first: char) -> SyntaxKind {
         let ident = self.accumulate(first, Self::is_id_continue);
         match &ident[..] {
+            "and" => SyntaxKind::And,
             "as" => SyntaxKind::As,
             "auto" => SyntaxKind::Auto,
             "break" => SyntaxKind::Break,
             "continue" => SyntaxKind::Continue,
             "else" => SyntaxKind::Else,
+            "false" => SyntaxKind::False,
             "for" => SyntaxKind::For,
             "if" => SyntaxKind::If,
             "import" => SyntaxKind::Import,
@@ -138,9 +140,12 @@ impl<'s> Lexer<'s> {
             "include" => SyntaxKind::Include,
             "let" => SyntaxKind::Let,
             "none" => SyntaxKind::None,
+            "not" => SyntaxKind::Not,
+            "or" => SyntaxKind::Or,
             "return" => SyntaxKind::Return,
             "set" => SyntaxKind::Set,
             "show" => SyntaxKind::Show,
+            "true" => SyntaxKind::True,
             "while" => SyntaxKind::While,
             _ => SyntaxKind::Ident,
         }
@@ -269,11 +274,13 @@ mod tests {
 
     #[test]
     fn test_keyword() {
+        check("and", expect![["And 3"]]);
         check("as", expect![["As 2"]]);
         check("auto", expect![["Auto 4"]]);
         check("break", expect![["Break 5"]]);
         check("continue", expect![["Continue 8"]]);
         check("else", expect![["Else 4"]]);
+        check("false", expect![["False 5"]]);
         check("for", expect![["For 3"]]);
         check("if", expect![["If 2"]]);
         check("import", expect![["Import 6"]]);
@@ -281,9 +288,12 @@ mod tests {
         check("include", expect![["Include 7"]]);
         check("let", expect![["Let 3"]]);
         check("none", expect![["None 4"]]);
+        check("not", expect![["Not 3"]]);
+        check("or", expect![["Or 2"]]);
         check("return", expect![["Return 6"]]);
         check("set", expect![["Set 3"]]);
         check("show", expect![["Show 4"]]);
+        check("true", expect![["True 4"]]);
         check("while", expect![["While 5"]]);
     }
 
