@@ -21,8 +21,13 @@ impl<'s> Lexer<'s> {
         Self { chars, pos: 0 }
     }
 
+    /// Returns the current position in the source text.
+    pub(crate) fn pos(&self) -> usize {
+        self.pos
+    }
+
     /// Returns the next `SyntaxKind` and its length.
-    pub(crate) fn next(&mut self) -> (u32, SyntaxKind) {
+    pub(crate) fn next(&mut self) -> (usize, SyntaxKind) {
         let first = self.peek();
         let start = self.pos;
         self.bump();
@@ -114,7 +119,7 @@ impl<'s> Lexer<'s> {
             }
         };
 
-        let len = (self.pos - start) as u32;
+        let len = self.pos - start;
         (len, kind)
     }
 

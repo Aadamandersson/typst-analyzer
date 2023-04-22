@@ -108,8 +108,19 @@ pub enum SyntaxKind {
     Whitespace,
     /// Represents code in the source text.
     Code,
+    /// E.g., `1`
+    Literal,
+    /// E.g., `1 + 2`
+    BinaryExpr,
     /// Lex or parse error.
     Error,
     /// End of file.
     Eof,
+}
+
+impl SyntaxKind {
+    /// Returns `true` if this `SyntaxKind` is trivia.
+    pub fn is_trivia(self) -> bool {
+        matches!(self, SyntaxKind::Whitespace)
+    }
 }

@@ -1,15 +1,15 @@
 use crate::kind::SyntaxKind;
 
-pub enum Element {
+pub enum RawNode {
     Node(Node),
     Leaf(Token),
 }
 
-impl Element {
+impl RawNode {
     pub(crate) fn len(&self) -> usize {
         match self {
-            Element::Node(n) => n.text_len(),
-            Element::Leaf(t) => t.text_len(),
+            RawNode::Node(n) => n.text_len(),
+            RawNode::Leaf(t) => t.text_len(),
         }
     }
     
@@ -19,7 +19,7 @@ impl Element {
 
     fn preorder(&self, depth: u32) {
         match self {
-            Element::Node(n) => {
+            RawNode::Node(n) => {
                 println!("{:?}", n.kind());
                 for child in n.children() {
                     for _ in 0..depth {
@@ -28,7 +28,7 @@ impl Element {
                     child.preorder(depth + 1);
                 }
             }
-            Element::Leaf(t) => {
+            RawNode::Leaf(t) => {
                 println!("{:?}", t);
             }
         }
@@ -37,12 +37,12 @@ impl Element {
 
 pub struct Node {
     kind: SyntaxKind,
-    children: Vec<Element>,
+    children: Vec<RawNode>,
     len: usize,
 }
 
 impl Node {
-    pub(crate) fn new(kind: SyntaxKind, children: Vec<Element>) -> Self {
+    pub(crate) fn new(kind: SyntaxKind, children: Vec<RawNode>) -> Self {
         let len = children.iter().map(|e| e.len()).sum();
         Self {
             kind,
@@ -55,7 +55,7 @@ impl Node {
         self.kind
     }
 
-    pub(crate) fn children(&self) -> impl Iterator<Item = &Element> {
+    pub(crate) fn children(&self) -> impl Iterator<Item = &RawNode> {
         self.children.iter()
     }
 
