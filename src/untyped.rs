@@ -1,25 +1,25 @@
 use crate::kind::SyntaxKind;
 
 pub enum RawNode {
-    Node(Node),
+    Inner(Node),
     Leaf(Token),
 }
 
 impl RawNode {
     pub(crate) fn len(&self) -> usize {
         match self {
-            RawNode::Node(n) => n.text_len(),
+            RawNode::Inner(n) => n.text_len(),
             RawNode::Leaf(t) => t.text_len(),
         }
     }
-    
+
     pub(crate) fn dump(&self) {
         self.preorder(1)
     }
 
     fn preorder(&self, depth: u32) {
         match self {
-            RawNode::Node(n) => {
+            RawNode::Inner(n) => {
                 println!("{:?}", n.kind());
                 for child in n.children() {
                     for _ in 0..depth {

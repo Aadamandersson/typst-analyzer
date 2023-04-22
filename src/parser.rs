@@ -53,7 +53,7 @@ impl<'s> Parser<'s> {
     /// This wraps all the nodes under `marker` into its own node in the syntax tree.
     fn complete(&mut self, marker: Marker, kind: SyntaxKind) {
         let children = self.nodes.drain(marker.0 as usize..).collect();
-        let node = RawNode::Node(Node::new(kind, children));
+        let node = RawNode::Inner(Node::new(kind, children));
         self.nodes.push(node);
     }
 
@@ -72,6 +72,7 @@ impl<'s> Parser<'s> {
         if self.curr == SyntaxKind::Eof {
             return;
         }
+
         let node = RawNode::Leaf(Token::new(self.curr, self.current_text().to_owned()));
         self.nodes.push(node);
         self.curr_start = self.lexer.pos();
@@ -85,31 +86,72 @@ impl<'s> Parser<'s> {
 
 fn code(p: &mut Parser) {
     let m = p.start();
-    code_expr(p);
+    while p.curr != SyntaxKind::Eof {
+        code_expr(p);
+    }
     p.complete(m, SyntaxKind::Code);
 }
 
 fn code_expr(p: &mut Parser) {
-    expr1(p);
+    expr3(p);
 }
 
-fn expr1(p: &mut Parser) {
+// TODO:
+//  * expr6: =, +=, -=, *=, /=,
+//  * expr5: And, Or
+//  * expr4: Eq, Ne, Lt, Le, Gt, Ge, In, Not, NotIn,
+//
+//  eventually replace with e.g., precedence climbing
+
+fn expr3(p: &mut Parser) -> bool {
     let m = p.start();
-    if !literal(p) {
-        return;
+    expr2(p);
+
+    if p.curr != SyntaxKind::Plus && p.curr != SyntaxKind::Minus {
+        return false;
     }
 
-    loop {
-        if p.curr != SyntaxKind::Plus {
-            break;
-        }
+    while p.curr == SyntaxKind::Plus || p.curr == SyntaxKind::Minus {
         p.bump();
-        if !literal(p) {
+        if !expr2(p) {
             break;
         }
     }
 
     p.complete(m, SyntaxKind::BinaryExpr);
+    true
+}
+
+fn expr2(p: &mut Parser) -> bool {
+    let m = p.start();
+    expr1(p);
+
+    if p.curr != SyntaxKind::Star && p.curr != SyntaxKind::Slash {
+        return false;
+    }
+
+    while p.curr == SyntaxKind::Star || p.curr == SyntaxKind::Slash {
+        p.bump();
+        if !expr1(p) {
+            break;
+        }
+    }
+
+    p.complete(m, SyntaxKind::BinaryExpr);
+    true
+}
+
+fn expr1(p: &mut Parser) -> bool {
+    match p.curr {
+        SyntaxKind::Plus | SyntaxKind::Minus => {
+            let m = p.start();
+            p.bump();
+            expr1(p);
+            p.complete(m, SyntaxKind::UnaryExpr);
+            true
+        }
+        _ => literal(p),
+    }
 }
 
 fn literal(p: &mut Parser) -> bool {
@@ -129,7 +171,7 @@ mod tests {
 
     #[test]
     fn go() {
-        let src = "123 + 321 + 456";
+        let src = "-1 + 2 * 3";
         let root = parse(src);
         root.dump();
     }
