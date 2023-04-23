@@ -1,6 +1,6 @@
 /// Represents all possible syntactic constructs for `Typst`.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-#[repr(u8)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[repr(u16)]
 pub enum SyntaxKind {
     /// An identifier.
     /// E.g., `foo`.
@@ -136,3 +136,17 @@ impl SyntaxKind {
         matches!(self, SyntaxKind::Whitespace)
     }
 }
+
+impl From<u16> for SyntaxKind {
+    fn from(value: u16) -> Self {
+        assert!(value <= SyntaxKind::Eof as u16);
+        unsafe { std::mem::transmute::<u16, SyntaxKind>(value) }
+    }
+}
+
+impl From<SyntaxKind> for u16 {
+    fn from(kind: SyntaxKind) -> Self {
+        kind as u16
+    }
+}
+
