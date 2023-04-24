@@ -197,7 +197,9 @@ impl<'s> Parser<'s> {
 
     /// Starts a new node in the syntax tree.
     fn start(&mut self, kind: SyntaxKind) {
+        self.eat_trivia();
         self.builder.start_node(kind);
+        self.eat_trivia();
     }
 
     /// Starts a new node in the syntax tree and the given checkpoint.
@@ -206,8 +208,11 @@ impl<'s> Parser<'s> {
     }
 
     /// Prepare for maybe wrapping the next node.
-    fn checkpoint(&self) -> Checkpoint {
-        self.builder.checkpoint()
+    fn checkpoint(&mut self) -> Checkpoint {
+        self.eat_trivia();
+        let cp = self.builder.checkpoint();
+        self.eat_trivia();
+        cp
     }
 
     /// Finish up and wrap the branch we have currently been building.
@@ -228,7 +233,7 @@ impl<'s> Parser<'s> {
     /// Bumps the parser to the next non-trivia token.
     fn eat_trivia(&mut self) {
         while self.curr.is_trivia() {
-            self.bump();
+            self.next();
         }
     }
 
@@ -239,6 +244,11 @@ impl<'s> Parser<'s> {
             return;
         }
 
+        self.eat_trivia();
+        self.next();
+    }
+
+    fn next(&mut self) {
         let text = &self.src[self.curr_start..(self.curr_start + self.curr_len)];
         self.builder.token(self.curr, text);
         self.curr_start = self.lexer.pos();
@@ -259,20 +269,22 @@ fn code_expr(p: &mut Parser) {
     code_prec_expr(p, 0);
 }
 
-// TODO: `not in`
+// TODO: `BinOp::NotIn`
 fn code_prec_expr(p: &mut Parser, min_prec: u8) -> bool {
     let cp = p.checkpoint();
     if let Some(op) = UnOp::from_kind(p.curr) {
+        p.start(SyntaxKind::UnaryExpr);
         p.bump();
         if !code_prec_expr(p, op.prec()) {
             // TODO: proper error handling
             eprintln!("expected expression");
         }
-        p.start_at(cp, SyntaxKind::UnaryExpr);
         p.wrap();
     } else {
         atom_expr(p);
     }
+
+    p.eat_trivia();
 
     loop {
         let Some(op) = BinOp::from_kind(p.curr) else {
@@ -284,6 +296,7 @@ fn code_prec_expr(p: &mut Parser, min_prec: u8) -> bool {
         }
 
         p.bump();
+
         let prec = match op.assoc() {
             Assoc::Left => op.prec() + 1,
             Assoc::Right => op.prec(),
@@ -319,11 +332,28 @@ fn literal(p: &mut Parser) -> bool {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use expect_test::expect_file;
+    use std::env;
+    use std::fs;
+    use std::path::Path;
 
     #[test]
-    fn go() {
-        let src = "-1+2*3";
-        let root = parse(src);
-        println!("{:#?}", root);
+    fn test_parse() {
+        let root_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
+        let data_dir = root_dir.join("test_data/parser");
+        let read_dir =
+            fs::read_dir(&data_dir).expect(&format!("could not read `{}`", data_dir.display()));
+
+        for file in read_dir {
+            let file = file.unwrap();
+            let path = file.path();
+            if path.extension().unwrap_or_default() == "typ" {
+                let ast = path.with_extension("ast");
+                let src = fs::read_to_string(&path)
+                    .expect(&format!("could not read `{}`", path.display()));
+                let actual = parse(&src);
+                expect_file![ast].assert_debug_eq(&actual);
+            }
+        }
     }
 }

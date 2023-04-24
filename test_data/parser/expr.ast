@@ -1,0 +1,25 @@
+Code@0..15
+  BinaryExpr@0..15
+    UnaryExpr@0..3
+      Minus@0..1 "-"
+      Literal@1..2
+        Int@1..2 "1"
+      Whitespace@2..3 " "
+    Plus@3..4 "+"
+    Whitespace@4..5 " "
+    BinaryExpr@5..15
+      BinaryExpr@5..11
+        Literal@5..6
+          Int@5..6 "2"
+        Whitespace@6..7 " "
+        Star@7..8 "*"
+        Whitespace@8..9 " "
+        Literal@9..10
+          Int@9..10 "3"
+        Whitespace@10..11 " "
+      Slash@11..12 "/"
+      Whitespace@12..13 " "
+      Literal@13..14
+        Int@13..14 "4"
+      Whitespace@14..15 "\n"
+
