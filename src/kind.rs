@@ -149,4 +149,3 @@ impl From<SyntaxKind> for u16 {
         kind as u16
     }
 }
-
