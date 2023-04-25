@@ -114,6 +114,8 @@ pub enum SyntaxKind {
     True,
     /// `while` keyword.
     While,
+    /// `/* ... */` or `// ...`
+    Comment,
     /// E.g., (' ', '\t', '\n', etc...)
     Whitespace,
     /// Represents code in the source text.
@@ -133,7 +135,7 @@ pub enum SyntaxKind {
 impl SyntaxKind {
     /// Returns `true` if this `SyntaxKind` is trivia.
     pub fn is_trivia(self) -> bool {
-        matches!(self, SyntaxKind::Whitespace)
+        matches!(self, SyntaxKind::Comment | SyntaxKind::Whitespace)
     }
 }
 

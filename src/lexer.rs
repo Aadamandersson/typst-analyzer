@@ -58,6 +58,10 @@ impl<'s> Lexer<'s> {
             '/' => {
                 if self.eat('=') {
                     SyntaxKind::SlashEq
+                } else if self.eat('/') {
+                    self.lex_line_comment()
+                } else if self.eat('*') {
+                    self.lex_block_comment()
                 } else {
                     SyntaxKind::Slash
                 }
@@ -182,6 +186,26 @@ impl<'s> Lexer<'s> {
         }
     }
 
+    fn lex_line_comment(&mut self) -> SyntaxKind {
+        self.eat_while(|ch| ch != '\r' && ch != '\n');
+        SyntaxKind::Comment
+    }
+
+    fn lex_block_comment(&mut self) -> SyntaxKind {
+        // TODO: report error if not terminated
+        //       support nested block comments?
+        while let Some(&ch) = self.chars.peek() {
+            if ch == '*' {
+                self.bump();
+                if self.eat('/') {
+                    break;
+                }
+            }
+            self.bump();
+        }
+        SyntaxKind::Comment
+    }
+
     /// Returns `true` and bumps the lexer if the next token
     /// is the given character.
     fn eat(&mut self, ch: char) -> bool {
@@ -300,6 +324,14 @@ mod tests {
     #[test]
     fn test_op() {
         check("+ /=", expect![["Plus 1Whitespace 1SlashEq 2"]]);
+    }
+
+    #[test]
+    fn test_comment() {
+        check("//", expect![["Comment 2"]]);
+        check("// abc", expect![["Comment 6"]]);
+        check("/**/", expect![["Comment 4"]]);
+        check("/* abc */", expect![["Comment 9"]]);
     }
 
     #[test]
