@@ -1,4 +1,3 @@
-#![allow(dead_code)]
 use crate::{
     kind::SyntaxKind,
     lexer::Lexer,
@@ -223,11 +222,6 @@ impl<'s> Parser<'s> {
     /// We are finished parsing the source text.
     fn finish(self) -> (SyntaxNode, Vec<SyntaxError>) {
         self.builder.finish()
-    }
-
-    /// Returns the text for the current token.
-    fn current_text(&self) -> &str {
-        &self.src[self.curr_start..(self.curr_start + self.curr_len)]
     }
 
     /// Bumps the parser to the next non-trivia token.
