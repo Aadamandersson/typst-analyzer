@@ -1,0 +1,9 @@
+Code@0..5
+  BinaryExpr@0..5
+    Literal@0..1
+      Int@0..1 "2"
+    Whitespace@1..2 " "
+    Star@2..3 "*"
+    Whitespace@3..5 " \n"
+
+error: 5: expected expression

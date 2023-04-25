@@ -1,6 +1,5 @@
-use rowan::{GreenNodeBuilder, Language};
-
 use crate::kind::SyntaxKind;
+use rowan::{GreenNodeBuilder, Language, TextRange, TextSize};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum TypstLanguage {}
@@ -18,23 +17,48 @@ impl Language for TypstLanguage {
 }
 
 pub type SyntaxNode = rowan::SyntaxNode<TypstLanguage>;
-pub type SyntaxToken = rowan::SyntaxToken<TypstLanguage>;
-pub type SyntaxElement = rowan::SyntaxToken<TypstLanguage>;
+// pub type SyntaxToken = rowan::SyntaxToken<TypstLanguage>;
+// pub type SyntaxElement = rowan::SyntaxToken<TypstLanguage>;
 pub type Checkpoint = rowan::Checkpoint;
+
+#[derive(Debug, Clone)]
+pub struct SyntaxError(String, TextRange);
+
+impl SyntaxError {
+    /// Constructs a new `SyntaxError` with the specified message and range.
+    pub fn new(msg: impl ToString, range: TextRange) -> Self {
+        Self(msg.to_string(), range)
+    }
+
+    /// Constructs a new `SyntaxError` with the specified message and range (`offset..offset`).
+    pub fn at_offset(msg: impl ToString, offset: TextSize) -> Self {
+        Self(msg.to_string(), TextRange::empty(offset))
+    }
+
+    pub fn message(&self) -> &str {
+        &self.0
+    }
+
+    pub fn range(&self) -> TextRange {
+        self.1
+    }
+}
 
 pub(crate) struct SyntaxTreeBuilder {
     inner: GreenNodeBuilder<'static>,
+    errors: Vec<SyntaxError>,
 }
 
 impl SyntaxTreeBuilder {
     pub(crate) fn new() -> Self {
         Self {
             inner: GreenNodeBuilder::new(),
+            errors: Vec::new(),
         }
     }
 
-    pub fn finish(self) -> SyntaxNode {
-        SyntaxNode::new_root(self.inner.finish())
+    pub fn finish(self) -> (SyntaxNode, Vec<SyntaxError>) {
+        (SyntaxNode::new_root(self.inner.finish()), self.errors)
     }
 
     pub fn checkpoint(&self) -> Checkpoint {
@@ -58,5 +82,9 @@ impl SyntaxTreeBuilder {
 
     pub fn finish_node(&mut self) {
         self.inner.finish_node();
+    }
+
+    pub fn error(&mut self, msg: impl ToString, offset: TextSize) {
+        self.errors.push(SyntaxError::at_offset(msg, offset));
     }
 }

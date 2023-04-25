@@ -2,7 +2,7 @@
 use crate::{
     kind::SyntaxKind,
     lexer::Lexer,
-    node::{Checkpoint, SyntaxNode, SyntaxTreeBuilder},
+    node::{Checkpoint, SyntaxError, SyntaxNode, SyntaxTreeBuilder},
 };
 
 /// A unary operator.
@@ -165,7 +165,7 @@ impl BinOp {
     }
 }
 
-pub fn parse(src: &str) -> SyntaxNode {
+pub fn parse(src: &str) -> (SyntaxNode, Vec<SyntaxError>) {
     let mut parser = Parser::new(src);
     code(&mut parser);
     parser.finish()
@@ -221,7 +221,7 @@ impl<'s> Parser<'s> {
     }
 
     /// We are finished parsing the source text.
-    fn finish(self) -> SyntaxNode {
+    fn finish(self) -> (SyntaxNode, Vec<SyntaxError>) {
         self.builder.finish()
     }
 
@@ -254,6 +254,10 @@ impl<'s> Parser<'s> {
         self.curr_start = self.lexer.pos();
         (self.curr_len, self.curr) = self.lexer.next();
     }
+
+    fn error(&mut self, msg: impl ToString) {
+        self.builder.error(msg, self.curr_start.try_into().unwrap());
+    }
 }
 
 fn code(p: &mut Parser) {
@@ -276,12 +280,11 @@ fn code_prec_expr(p: &mut Parser, min_prec: u8) -> bool {
         p.start(SyntaxKind::UnaryExpr);
         p.bump();
         if !code_prec_expr(p, op.prec()) {
-            // TODO: proper error handling
-            eprintln!("expected expression");
+            p.error("expected expression");
         }
         p.wrap();
-    } else {
-        atom_expr(p);
+    } else if !atom_expr(p) {
+        return false;
     }
 
     p.eat_trivia();
@@ -303,8 +306,7 @@ fn code_prec_expr(p: &mut Parser, min_prec: u8) -> bool {
         };
 
         if !code_prec_expr(p, prec) {
-            // TODO: proper error handling
-            eprintln!("expected expression");
+            p.error("expected expression");
         }
 
         p.start_at(cp, SyntaxKind::BinaryExpr);
@@ -333,14 +335,21 @@ fn literal(p: &mut Parser) -> bool {
 mod tests {
     use super::*;
     use expect_test::expect_file;
-    use std::env;
-    use std::fs;
-    use std::path::Path;
+    use std::{env, fs, path::Path};
 
     #[test]
-    fn test_parse() {
+    fn test_parse_ok() {
+        parse_test_dir("ok")
+    }
+
+    #[test]
+    fn test_parse_err() {
+        parse_test_dir("err")
+    }
+
+    fn parse_test_dir(dir: &str) {
         let root_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
-        let data_dir = root_dir.join("test_data/parser");
+        let data_dir = root_dir.join(format!("test_data/parser/{}", dir));
         let read_dir =
             fs::read_dir(&data_dir).expect(&format!("could not read `{}`", data_dir.display()));
 
@@ -351,8 +360,17 @@ mod tests {
                 let ast = path.with_extension("ast");
                 let src = fs::read_to_string(&path)
                     .expect(&format!("could not read `{}`", path.display()));
-                let actual = parse(&src);
-                expect_file![ast].assert_debug_eq(&actual);
+                let (root, errors) = parse(&src);
+                let actual = format!("{:#?}", root);
+                let mut actual_with_errors = actual;
+                for error in errors {
+                    actual_with_errors.push_str(&format!(
+                        "error: {:?}: {}",
+                        error.range().start(),
+                        error.message()
+                    ));
+                }
+                expect_file![ast].assert_eq(&actual_with_errors);
             }
         }
     }
