@@ -1,4 +1,4 @@
 mod kind;
 mod lexer;
 mod node;
-mod parser;
+pub mod parser;

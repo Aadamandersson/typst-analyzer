@@ -8,3 +8,4 @@ edition = "2021"
 
 [dependencies]
 cli = { path = "components/cli/" }
+eyre = "0.6.8"
