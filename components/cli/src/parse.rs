@@ -1,11 +1,11 @@
 use std::io;
 
-use clap::Parser;
+use clap::Args;
 
-#[derive(Parser)]
-pub(crate) struct Args {}
+#[derive(Args)]
+pub(crate) struct Parse;
 
-impl Args {
+impl Parse {
     pub(crate) fn run(&self) -> eyre::Result<()> {
         let src = io::read_to_string(io::stdin())?;
         let (root, _) = syntax::parser::parse(&src);

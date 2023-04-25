@@ -1,3 +1,4 @@
+mod lsp_server;
 mod parse;
 
 use clap::{Parser, Subcommand};
@@ -5,17 +6,20 @@ use clap::{Parser, Subcommand};
 #[derive(Parser)]
 struct Args {
     #[command(subcommand)]
-    cmd: Command,
+    subcmd: Option<Command>,
 }
 
 #[derive(Subcommand)]
 enum Command {
-    /// Parses source text from stdin and dumps the syntax tree to stdout.
-    Parse(parse::Args),
+    /// Parse from stdin and dump the syntax tree to stdout.
+    Parse(parse::Parse),
 }
 
 pub fn main() -> eyre::Result<()> {
-    match Args::parse().cmd {
-        Command::Parse(args) => args.run(),
+    match Args::parse().subcmd {
+        Some(subcmd) => match subcmd {
+            Command::Parse(cmd) => cmd.run(),
+        },
+        None => lsp_server::run(),
     }
 }
