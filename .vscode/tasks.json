@@ -1,0 +1,30 @@
+{
+    // See https://go.microsoft.com/fwlink/?LinkId=733558
+    // for the documentation about the tasks.json format
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Build Server",
+            "group": "build",
+            "type": "shell",
+            "command": "cargo build",
+            "problemMatcher": "$rustc"
+        },
+        {
+            "label": "Build Extension",
+            "group": "build",
+            "type": "npm",
+            "script": "build",
+            "path": "editors/code/",
+            "problemMatcher": {
+              "base": "$tsc",
+              "fileLocation": ["relative", "${workspaceFolder}/editors/code/"]
+            },
+        },
+        {
+            "label": "Build Server and Extension",
+            "dependsOn": ["Build Server", "Build Extension"],
+            "problemMatcher": "$rustc"
+        },
+    ]
+}

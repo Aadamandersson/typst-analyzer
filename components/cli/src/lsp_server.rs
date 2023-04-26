@@ -46,11 +46,11 @@ fn main_loop(connection: Connection, params: serde_json::Value) -> eyre::Result<
             }
             Message::Notification(not) => {
                 if let Some(_params) = cast_notification::<DidOpenTextDocument>(&not) {
-                    todo!()
+                    eprintln!("TODO: DidOpenTextDocument")
                 } else if let Some(_params) = cast_notification::<DidChangeTextDocument>(&not) {
-                    todo!()
+                    eprintln!("TODO: DidChangeTextDocument")
                 } else if let Some(_params) = cast_notification::<DidCloseTextDocument>(&not) {
-                    todo!()
+                    eprintln!("TODO: DidCloseTextDocument")
                 } else {
                     eprintln!("unhandled notification: {not:?}");
                 }

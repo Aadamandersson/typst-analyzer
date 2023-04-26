@@ -1,0 +1,52 @@
+{
+  "name": "typst-analyzer",
+  "version": "0.0.1",
+  "description": "Language support for Typst",
+  "main": "./out/extension",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Aadamandersson/typst-analyzer.git"
+  },
+  "keywords": [
+    "typst"
+  ],
+  "author": "Adam Andersson",
+  "publisher": "Adam Andersson",
+  "license": "MIT OR Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/Aadamandersson/typst-analyzer/issues"
+  },
+  "homepage": "https://github.com/Aadamandersson/typst-analyzer#readme",
+  "engines": {
+    "vscode": "^1.77.0"
+  },
+  "activationEvents": [
+    "onLanguage:typst"
+  ],
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "tsc -b"
+  },
+  "dependencies": {
+    "vscode-languageclient": "^8.1.0"
+  },
+  "devDependencies": {
+    "@types/node": "^18.16.1",
+    "@types/vscode": "^1.77.0",
+    "typescript": "^5.0.4"
+  },
+  "contributes": {
+    "languages": [
+      {
+        "id": "typst",
+        "extensions": [
+          ".typ"
+        ],
+        "aliases": [
+          "Typst",
+          "typ"
+        ]
+      }
+    ]
+  }
+}
