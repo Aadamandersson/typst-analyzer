@@ -1,4 +1,4 @@
-import { ExtensionContext, Uri, workspace } from 'vscode';
+import { ExtensionContext, Uri } from 'vscode';
 
 import {
     Executable,
@@ -8,9 +8,6 @@ import {
 let client: LanguageClient | undefined = undefined;
 
 export function activate(ctx: ExtensionContext) {
-    let config = workspace.getConfiguration("typst-analyzer");
-    console.log(config);
-
     const run: Executable = {
         command: getServer(ctx),
     };
