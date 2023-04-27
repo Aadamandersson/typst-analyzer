@@ -129,6 +129,7 @@ impl<'s> Lexer<'s> {
     fn lex_ident(&mut self, first: char) -> SyntaxKind {
         let ident = self.accumulate(first, Self::is_id_continue);
         match &ident[..] {
+            "_" => SyntaxKind::Underscore,
             "and" => SyntaxKind::And,
             "as" => SyntaxKind::As,
             "auto" => SyntaxKind::Auto,
@@ -297,6 +298,7 @@ mod tests {
 
     #[test]
     fn test_keyword() {
+        check("_", expect![["Underscore 1"]]);
         check("and", expect![["And 3"]]);
         check("as", expect![["As 2"]]);
         check("auto", expect![["Auto 4"]]);

@@ -249,6 +249,29 @@ impl<'s> Parser<'s> {
         (self.curr_len, self.curr) = self.lexer.next();
     }
 
+    /// Returns `true` and eats the next token if the current `SyntaxKind` is `kind`, otherwise returns `false`.
+    fn eat(&mut self, kind: SyntaxKind) -> bool {
+        if self.curr == kind {
+            self.bump();
+            true
+        } else {
+            false
+        }
+    }
+
+    /// Eats the next token if it is `kind`, otherwise emits an error.
+    fn expect(&mut self, kind: SyntaxKind) {
+        if self.eat(kind) {
+            return;
+        }
+        self.error(format!("expected `{kind:?}`"));
+    }
+
+    /// Returns `true` if the current `SyntaxKind` is `kind`, otherwise returns `false`.
+    fn at(&self, kind: SyntaxKind) -> bool {
+        self.curr == kind
+    }
+
     fn error(&mut self, msg: impl ToString) {
         self.builder.error(msg, self.curr_start.try_into().unwrap());
     }
@@ -256,7 +279,7 @@ impl<'s> Parser<'s> {
 
 fn code(p: &mut Parser) {
     p.start(SyntaxKind::Code);
-    while p.curr != SyntaxKind::Eof {
+    while !p.at(SyntaxKind::Eof) {
         // We always want to construct a syntax tree, so just bump the parser
         // if we encounter something that we have not yet implemented support for.
         if !code_expr(p) {
@@ -268,7 +291,35 @@ fn code(p: &mut Parser) {
 }
 
 fn code_expr(p: &mut Parser) -> bool {
-    code_prec_expr(p, 0)
+    match p.curr {
+        SyntaxKind::Let => let_binding(p),
+        _ => code_prec_expr(p, 0),
+    }
+}
+
+fn let_binding(p: &mut Parser) -> bool {
+    p.start(SyntaxKind::LetBinding);
+    p.bump();
+    p.eat_trivia();
+
+    if p.at(SyntaxKind::Ident) {
+        p.start(SyntaxKind::IdentPat);
+        p.bump();
+        p.wrap();
+    } else if p.at(SyntaxKind::Underscore) {
+        p.start(SyntaxKind::WildcardPat);
+        p.bump();
+        p.wrap();
+    }
+
+    p.eat_trivia();
+
+    if p.eat(SyntaxKind::Eq) && !code_expr(p) {
+        p.error("expected expression");
+    }
+
+    p.wrap();
+    true
 }
 
 // TODO: `BinOp::NotIn`
@@ -281,7 +332,7 @@ fn code_prec_expr(p: &mut Parser, min_prec: u8) -> bool {
             p.error("expected expression");
         }
         p.wrap();
-    } else if !atom_expr(p) {
+    } else if !code_primary_expr(p) {
         return false;
     }
 
@@ -314,15 +365,14 @@ fn code_prec_expr(p: &mut Parser, min_prec: u8) -> bool {
     true
 }
 
-fn atom_expr(p: &mut Parser) -> bool {
-    literal(p)
+fn code_primary_expr(p: &mut Parser) -> bool {
+    match p.curr {
+        SyntaxKind::Int | SyntaxKind::Float | SyntaxKind::String => literal(p),
+        _ => false,
+    }
 }
 
 fn literal(p: &mut Parser) -> bool {
-    if p.curr != SyntaxKind::Int && p.curr != SyntaxKind::Float && p.curr != SyntaxKind::String {
-        return false;
-    }
-
     p.start(SyntaxKind::Literal);
     p.bump();
     p.wrap();
