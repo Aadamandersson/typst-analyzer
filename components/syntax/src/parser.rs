@@ -349,9 +349,8 @@ fn params(p: &mut Parser) {
 fn param(p: &mut Parser) {
     p.start(SyntaxKind::Param);
     // TODO: support more than `IdentPat`
-    // TODO: introduce a `Name` node
     p.start(SyntaxKind::IdentPat);
-    p.expect(SyntaxKind::Ident);
+    name(p);
     p.wrap();
     p.wrap();
 }
@@ -403,22 +402,27 @@ fn code_primary_expr(p: &mut Parser) -> bool {
     match p.curr {
         SyntaxKind::Ident => name_ref(p),
         SyntaxKind::Int | SyntaxKind::Float | SyntaxKind::String => literal(p),
-        _ => false,
+        _ => return false,
     }
+    true
 }
 
-fn name_ref(p: &mut Parser) -> bool {
+fn name(p: &mut Parser) {
+    p.start(SyntaxKind::Name);
+    p.expect(SyntaxKind::Ident);
+    p.wrap();
+}
+
+fn name_ref(p: &mut Parser) {
     p.start(SyntaxKind::NameRef);
     p.bump();
     p.wrap();
-    true
 }
 
-fn literal(p: &mut Parser) -> bool {
+fn literal(p: &mut Parser) {
     p.start(SyntaxKind::Literal);
     p.bump();
     p.wrap();
-    true
 }
 
 #[cfg(test)]
