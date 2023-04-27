@@ -257,14 +257,18 @@ impl<'s> Parser<'s> {
 fn code(p: &mut Parser) {
     p.start(SyntaxKind::Code);
     while p.curr != SyntaxKind::Eof {
-        code_expr(p);
+        // We always want to construct a syntax tree, so just bump the parser
+        // if we encounter something that we have not yet implemented support for.
+        if !code_expr(p) {
+            p.bump();
+        }
     }
 
     p.wrap();
 }
 
-fn code_expr(p: &mut Parser) {
-    code_prec_expr(p, 0);
+fn code_expr(p: &mut Parser) -> bool {
+    code_prec_expr(p, 0)
 }
 
 // TODO: `BinOp::NotIn`
