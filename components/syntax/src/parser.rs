@@ -321,7 +321,7 @@ fn let_binding(p: &mut Parser) -> bool {
     }
 
     p.eat_trivia();
-
+    // TODO: this is not optional for functions.
     if p.eat(SyntaxKind::Eq) && !code_expr(p) {
         p.error("expected expression");
     }
@@ -401,15 +401,16 @@ fn code_prec_expr(p: &mut Parser, min_prec: u8) -> bool {
 
 fn code_primary_expr(p: &mut Parser) -> bool {
     match p.curr {
-        SyntaxKind::Ident => name(p),
+        SyntaxKind::Ident => name_ref(p),
         SyntaxKind::Int | SyntaxKind::Float | SyntaxKind::String => literal(p),
         _ => false,
     }
 }
 
-fn name(p: &mut Parser) -> bool {
-    // FIXME: introduce `NameRef` node
+fn name_ref(p: &mut Parser) -> bool {
+    p.start(SyntaxKind::NameRef);
     p.bump();
+    p.wrap();
     true
 }
 

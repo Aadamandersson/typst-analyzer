@@ -144,6 +144,9 @@ pub enum SyntaxKind {
     /// A parameter.
     /// E.g., `x`
     Param,
+    /// A reference to a name.
+    /// E.g., `x`
+    NameRef,
     /// E.g., `-1`
     UnaryExpr,
     /// Lex or parse error.

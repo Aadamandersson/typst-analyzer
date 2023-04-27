@@ -19,11 +19,13 @@ Code@0..43
     Eq@14..15 "="
     Whitespace@15..16 " "
     BinaryExpr@16..25
-      Ident@16..17 "x"
+      NameRef@16..17
+        Ident@16..17 "x"
       Whitespace@17..18 " "
       Plus@18..19 "+"
       Whitespace@19..20 " "
-      Ident@20..21 "y"
+      NameRef@20..21
+        Ident@20..21 "y"
       Whitespace@21..25 "\n\n\n\n"
   LetBinding@25..43
     Let@25..28 "let"
