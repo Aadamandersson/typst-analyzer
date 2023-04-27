@@ -1,0 +1,12 @@
+Code@0..12
+  LetBinding@0..12
+    Let@0..3 "let"
+    Whitespace@3..4 " "
+    IdentPat@4..5
+      Ident@4..5 "x"
+    Whitespace@5..6 " "
+    Eq@6..7 "="
+    Whitespace@7..8 " "
+    Literal@8..11
+      Int@8..11 "123"
+    Whitespace@11..12 "\n"

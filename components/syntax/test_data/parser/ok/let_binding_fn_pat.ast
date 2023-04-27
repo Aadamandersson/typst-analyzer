@@ -1,0 +1,47 @@
+Code@0..43
+  LetBinding@0..25
+    Let@0..3 "let"
+    Whitespace@3..4 " "
+    FnPat@4..13
+      Ident@4..7 "add"
+      Params@7..13
+        OpenParen@7..8 "("
+        Param@8..9
+          IdentPat@8..9
+            Ident@8..9 "x"
+        Comma@9..10 ","
+        Whitespace@10..11 " "
+        Param@11..12
+          IdentPat@11..12
+            Ident@11..12 "y"
+        CloseParen@12..13 ")"
+    Whitespace@13..14 " "
+    Eq@14..15 "="
+    Whitespace@15..16 " "
+    BinaryExpr@16..25
+      Ident@16..17 "x"
+      Whitespace@17..18 " "
+      Plus@18..19 "+"
+      Whitespace@19..20 " "
+      Ident@20..21 "y"
+      Whitespace@21..25 "\n\n\n\n"
+  LetBinding@25..43
+    Let@25..28 "let"
+    Whitespace@28..29 " "
+    FnPat@29..34
+      Ident@29..32 "two"
+      Params@32..34
+        OpenParen@32..33 "("
+        CloseParen@33..34 ")"
+    Whitespace@34..35 " "
+    Eq@35..36 "="
+    Whitespace@36..37 " "
+    BinaryExpr@37..43
+      Literal@37..38
+        Int@37..38 "1"
+      Whitespace@38..39 " "
+      Plus@39..40 "+"
+      Whitespace@40..41 " "
+      Literal@41..42
+        Int@41..42 "1"
+      Whitespace@42..43 "\n"

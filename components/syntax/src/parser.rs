@@ -303,8 +303,16 @@ fn let_binding(p: &mut Parser) -> bool {
     p.eat_trivia();
 
     if p.at(SyntaxKind::Ident) {
-        p.start(SyntaxKind::IdentPat);
+        let cp = p.checkpoint();
         p.bump();
+        
+        if p.at(SyntaxKind::OpenParen) {
+            p.start_at(cp, SyntaxKind::FnPat);
+            params(p);
+        } else {
+            p.start_at(cp, SyntaxKind::IdentPat);
+        }
+
         p.wrap();
     } else if p.at(SyntaxKind::Underscore) {
         p.start(SyntaxKind::WildcardPat);
@@ -320,6 +328,32 @@ fn let_binding(p: &mut Parser) -> bool {
 
     p.wrap();
     true
+}
+
+fn params(p: &mut Parser) {
+    p.start(SyntaxKind::Params);
+    p.bump();
+
+    
+    while !p.at(SyntaxKind::CloseParen) && !p.at(SyntaxKind::Eof) {
+        param(p);
+        if !p.eat(SyntaxKind::Comma) {
+            break;
+        }
+    }
+
+    p.expect(SyntaxKind::CloseParen);
+    p.wrap();
+}
+
+fn param(p: &mut Parser) {
+    p.start(SyntaxKind::Param);
+    // TODO: support more than `IdentPat`
+    // TODO: introduce a `Name` node
+    p.start(SyntaxKind::IdentPat);
+    p.expect(SyntaxKind::Ident);
+    p.wrap();
+    p.wrap();
 }
 
 // TODO: `BinOp::NotIn`
@@ -367,9 +401,16 @@ fn code_prec_expr(p: &mut Parser, min_prec: u8) -> bool {
 
 fn code_primary_expr(p: &mut Parser) -> bool {
     match p.curr {
+        SyntaxKind::Ident => name(p),
         SyntaxKind::Int | SyntaxKind::Float | SyntaxKind::String => literal(p),
         _ => false,
     }
+}
+
+fn name(p: &mut Parser) -> bool {
+    // FIXME: introduce `NameRef` node
+    p.bump();
+    true
 }
 
 fn literal(p: &mut Parser) -> bool {

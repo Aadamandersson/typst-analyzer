@@ -126,13 +126,24 @@ pub enum SyntaxKind {
     Literal,
     /// E.g., `1 + 2`
     BinaryExpr,
-    /// E.g., `foo`
-    IdentPat,
-    /// `_`
-    WildcardPat,
     /// `let pat [= expr]`
     /// E.g., `let foo = 1`
     LetBinding,
+    /// A function pattern.
+    /// E.g., `add(x, y)` in `let add(x, y) = x + y`
+    FnPat,
+    /// An identifier pattern.
+    /// E.g., `foo`
+    IdentPat,
+    /// A wildcard pattern.
+    /// `_`
+    WildcardPat,
+    /// A parameter list.
+    /// E.g., `(x, y)`
+    Params,
+    /// A parameter.
+    /// E.g., `x`
+    Param,
     /// E.g., `-1`
     UnaryExpr,
     /// Lex or parse error.
