@@ -87,21 +87,23 @@ impl LspServer {
         for err in errors {
             let range = err.range();
 
+            let char_start: u32 = range.start().into();
             let start = Position {
-                line: 0, // TODO
-                character: range.start().into(),
+                line: line_index(src, char_start),
+                character: char_start,
             };
 
+            let char_end: u32 = range.end().into();
             let end = Position {
-                line: 0, // TODO
-                character: range.end().into(),
+                line: line_index(src, char_end),
+                character: char_end,
             };
 
             let diag = Diagnostic::new(
                 Range { start, end },
                 Some(DiagnosticSeverity::ERROR),
                 None,
-                None,
+                Some(String::from("typst-analyzer")),
                 err.message().to_string(),
                 None,
                 None,
@@ -120,6 +122,37 @@ impl LspServer {
         self.connection.sender.send(Message::Notification(not))?;
         Ok(())
     }
+}
+
+fn line_index(text: &str, offset: u32) -> u32 {
+    let mut chars = text.chars().peekable();
+    let mut current = 0;
+    let mut line_index = 0;
+
+    while let Some(ch) = chars.next() {
+        if current == offset {
+            break;
+        }
+
+        match ch {
+            '\r' => {
+                if chars.next_if(|c| *c == '\n').is_some() {
+                    current += 1;
+                    line_index += 1;
+                } else {
+                    line_index += 1;
+                }
+            }
+            '\n' => {
+                line_index += 1;
+            }
+            _ => {}
+        }
+
+        current += 1;
+    }
+
+    line_index
 }
 
 fn server_capabilities() -> ServerCapabilities {
@@ -153,5 +186,27 @@ where
     Notification {
         method: T::METHOD.to_owned(),
         params: serde_json::to_value(&params).unwrap(),
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_line_index() {
+        let text = "123\n456\r\n789";
+        assert_eq!(0, line_index(text, 0));
+        assert_eq!(0, line_index(text, 2));
+        assert_eq!(0, line_index(text, 3));
+
+        assert_eq!(1, line_index(text, 4));
+        assert_eq!(1, line_index(text, 6));
+        assert_eq!(1, line_index(text, 7));
+
+        assert_eq!(2, line_index(text, 8));
+        assert_eq!(2, line_index(text, 10));
+        assert_eq!(2, line_index(text, 11));
+        assert_eq!(2, line_index(text, 12));
     }
 }
