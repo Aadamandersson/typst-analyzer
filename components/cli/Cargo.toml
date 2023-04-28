@@ -3,6 +3,9 @@ name = "cli"
 version = "0.1.0"
 edition = "2021"
 
+[lib]
+doctest = false
+
 [dependencies]
 syntax = { path = "../syntax/" }
 clap = { version = "4.2.4", features = ["derive"] }

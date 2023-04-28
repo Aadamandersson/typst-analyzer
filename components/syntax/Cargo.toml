@@ -3,6 +3,9 @@ name = "syntax"
 version = "0.1.0"
 edition = "2021"
 
+[lib]
+doctest = false
+
 [dependencies]
 expect-test = "1.4.1"
 rowan = "0.15.11"
