@@ -410,6 +410,7 @@ fn code_prec_expr(p: &mut Parser, min_prec: u8) -> bool {
 fn code_primary_expr(p: &mut Parser) -> bool {
     match p.curr {
         SyntaxKind::Ident => name_ref(p),
+        SyntaxKind::OpenParen => parenthesized(p),
         SyntaxKind::Int | SyntaxKind::Float | SyntaxKind::String => literal(p),
         _ => return false,
     }
@@ -425,6 +426,14 @@ fn name(p: &mut Parser) {
 fn name_ref(p: &mut Parser) {
     p.start(SyntaxKind::NameRef);
     p.bump();
+    p.wrap();
+}
+
+fn parenthesized(p: &mut Parser) {
+    p.start(SyntaxKind::ParenExpr);
+    p.bump();
+    code_expr(p);
+    p.expect(SyntaxKind::CloseParen);
     p.wrap();
 }
 

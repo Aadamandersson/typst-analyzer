@@ -126,6 +126,8 @@ pub enum SyntaxKind {
     Literal,
     /// E.g., `1 + 2`
     BinaryExpr,
+    /// E.g., `(1 + 2)`
+    ParenExpr,
     /// `let pat [= expr]`
     /// E.g., `let foo = 1`
     LetBinding,
