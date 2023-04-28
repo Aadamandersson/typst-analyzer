@@ -302,13 +302,15 @@ fn let_binding(p: &mut Parser) -> bool {
     p.bump();
     p.eat_trivia();
 
+    let mut is_fn = false;
     if p.at(SyntaxKind::Ident) {
         let cp = p.checkpoint();
         p.bump();
-        
+
         if p.at(SyntaxKind::OpenParen) {
             p.start_at(cp, SyntaxKind::FnPat);
             params(p);
+            is_fn = true;
         } else {
             p.start_at(cp, SyntaxKind::IdentPat);
         }
@@ -318,12 +320,20 @@ fn let_binding(p: &mut Parser) -> bool {
         p.start(SyntaxKind::WildcardPat);
         p.bump();
         p.wrap();
+    } else {
+        p.error("expected pattern");
     }
 
     p.eat_trivia();
-    // TODO: this is not optional for functions.
-    if p.eat(SyntaxKind::Eq) && !code_expr(p) {
-        p.error("expected expression");
+    if is_fn {
+        p.expect(SyntaxKind::Eq);
+        if !code_expr(p) {
+            p.error("expected expression");
+        }
+    } else {
+        if p.eat(SyntaxKind::Eq) && !code_expr(p) {
+            p.error("expected expression");
+        }
     }
 
     p.wrap();
@@ -334,7 +344,6 @@ fn params(p: &mut Parser) {
     p.start(SyntaxKind::Params);
     p.bump();
 
-    
     while !p.at(SyntaxKind::CloseParen) && !p.at(SyntaxKind::Eof) {
         param(p);
         if !p.eat(SyntaxKind::Comma) {
@@ -459,7 +468,7 @@ mod tests {
                 let mut actual_with_errors = actual;
                 for error in errors {
                     actual_with_errors.push_str(&format!(
-                        "error: {:?}: {}",
+                        "error: {:?}: {}\n",
                         error.range().start(),
                         error.message()
                     ));
