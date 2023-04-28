@@ -234,7 +234,7 @@ impl<'s> Parser<'s> {
     /// Adds the current token to the branch we are building and
     /// bumps the parser to the next token.
     fn bump(&mut self) {
-        if self.curr == SyntaxKind::Eof {
+        if self.at(SyntaxKind::Eof) {
             return;
         }
 
@@ -251,7 +251,7 @@ impl<'s> Parser<'s> {
 
     /// Returns `true` and eats the next token if the current `SyntaxKind` is `kind`, otherwise returns `false`.
     fn eat(&mut self, kind: SyntaxKind) -> bool {
-        if self.curr == kind {
+        if self.at(kind) {
             self.bump();
             true
         } else {
@@ -429,11 +429,31 @@ fn name_ref(p: &mut Parser) {
     p.wrap();
 }
 
+// TODO: dictionary
 fn parenthesized(p: &mut Parser) {
-    p.start(SyntaxKind::ParenExpr);
+    let cp = p.checkpoint();
     p.bump();
-    code_expr(p);
+    
+    let mut elements = 0;
+    while !p.at(SyntaxKind::Eof) && !p.at(SyntaxKind::CloseParen) {
+        if !code_expr(p) {
+            p.error("expected expression");
+        }
+
+        elements += 1;
+
+        if !p.eat(SyntaxKind::Comma) {
+            break;
+        }
+    }
+
     p.expect(SyntaxKind::CloseParen);
+    if elements == 1 {
+        p.start_at(cp, SyntaxKind::ParenExpr)
+    } else {
+        p.start_at(cp, SyntaxKind::ArrayExpr)
+    }
+
     p.wrap();
 }
 

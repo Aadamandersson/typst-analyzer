@@ -126,8 +126,12 @@ pub enum SyntaxKind {
     Literal,
     /// E.g., `1 + 2`
     BinaryExpr,
+    /// E.g., `-1`
+    UnaryExpr,
     /// E.g., `(1 + 2)`
     ParenExpr,
+    /// E.g., `(1, 2, 3)`
+    ArrayExpr,
     /// `let pat [= expr]`
     /// E.g., `let foo = 1`
     LetBinding,
@@ -151,8 +155,6 @@ pub enum SyntaxKind {
     /// A reference to a name.
     /// E.g., `x`
     NameRef,
-    /// E.g., `-1`
-    UnaryExpr,
     /// Lex or parse error.
     Error,
     /// End of file.
