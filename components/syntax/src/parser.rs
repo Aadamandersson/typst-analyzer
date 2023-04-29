@@ -411,6 +411,7 @@ fn code_primary_expr(p: &mut Parser) -> bool {
     match p.curr {
         SyntaxKind::Ident => name_ref(p),
         SyntaxKind::OpenParen => parenthesized(p),
+        SyntaxKind::OpenBrace => code_block(p),
         SyntaxKind::Int | SyntaxKind::Float | SyntaxKind::String => literal(p),
         _ => return false,
     }
@@ -433,7 +434,7 @@ fn name_ref(p: &mut Parser) {
 fn parenthesized(p: &mut Parser) {
     let cp = p.checkpoint();
     p.bump();
-    
+
     let mut elements = 0;
     while !p.at(SyntaxKind::Eof) && !p.at(SyntaxKind::CloseParen) {
         if !code_expr(p) {
@@ -454,6 +455,18 @@ fn parenthesized(p: &mut Parser) {
         p.start_at(cp, SyntaxKind::ArrayExpr)
     }
 
+    p.wrap();
+}
+
+fn code_block(p: &mut Parser) {
+    p.start(SyntaxKind::CodeBlock);
+    p.expect(SyntaxKind::OpenBrace);
+
+    while !p.at(SyntaxKind::Eof) && !p.at(SyntaxKind::CloseBrace) {
+        code_expr(p);
+    }
+
+    p.expect(SyntaxKind::CloseBrace);
     p.wrap();
 }
 

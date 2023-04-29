@@ -122,6 +122,8 @@ pub enum SyntaxKind {
     Whitespace,
     /// Represents code in the source text.
     Code,
+    /// `{ ... }`
+    CodeBlock,
     /// E.g., `1`
     Literal,
     /// E.g., `1 + 2`
