@@ -1,1 +1,3 @@
-Code@0..0
+Code@0..2
+  Pound@0..1 "#"
+  Whitespace@1..2 "\n"

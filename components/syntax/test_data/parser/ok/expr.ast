@@ -1,24 +1,30 @@
-Code@0..15
-  BinaryExpr@0..15
-    UnaryExpr@0..3
-      Minus@0..1 "-"
-      Literal@1..2
-        Int@1..2 "1"
-      Whitespace@2..3 " "
-    Plus@3..4 "+"
-    Whitespace@4..5 " "
-    BinaryExpr@5..15
-      BinaryExpr@5..11
-        Literal@5..6
-          Int@5..6 "2"
-        Whitespace@6..7 " "
-        Star@7..8 "*"
-        Whitespace@8..9 " "
-        Literal@9..10
-          Int@9..10 "3"
-        Whitespace@10..11 " "
-      Slash@11..12 "/"
-      Whitespace@12..13 " "
-      Literal@13..14
-        Int@13..14 "4"
-      Whitespace@14..15 "\n"
+Code@0..20
+  Pound@0..1 "#"
+  CodeBlock@1..19
+    OpenBrace@1..2 "{"
+    Whitespace@2..3 " "
+    BinaryExpr@3..18
+      UnaryExpr@3..6
+        Minus@3..4 "-"
+        Literal@4..5
+          Int@4..5 "1"
+        Whitespace@5..6 " "
+      Plus@6..7 "+"
+      Whitespace@7..8 " "
+      BinaryExpr@8..18
+        BinaryExpr@8..14
+          Literal@8..9
+            Int@8..9 "2"
+          Whitespace@9..10 " "
+          Star@10..11 "*"
+          Whitespace@11..12 " "
+          Literal@12..13
+            Int@12..13 "3"
+          Whitespace@13..14 " "
+        Slash@14..15 "/"
+        Whitespace@15..16 " "
+        Literal@16..17
+          Int@16..17 "4"
+        Whitespace@17..18 " "
+    CloseBrace@18..19 "}"
+  Whitespace@19..20 "\n"

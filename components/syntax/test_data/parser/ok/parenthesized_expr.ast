@@ -1,13 +1,14 @@
-Code@0..8
-  ParenExpr@0..7
-    OpenParen@0..1 "("
-    BinaryExpr@1..6
-      Literal@1..2
-        Int@1..2 "1"
-      Whitespace@2..3 " "
-      Plus@3..4 "+"
-      Whitespace@4..5 " "
-      Literal@5..6
-        Int@5..6 "2"
-    CloseParen@6..7 ")"
-  Whitespace@7..8 "\n"
+Code@0..9
+  Pound@0..1 "#"
+  ParenExpr@1..8
+    OpenParen@1..2 "("
+    BinaryExpr@2..7
+      Literal@2..3
+        Int@2..3 "1"
+      Whitespace@3..4 " "
+      Plus@4..5 "+"
+      Whitespace@5..6 " "
+      Literal@6..7
+        Int@6..7 "2"
+    CloseParen@7..8 ")"
+  Whitespace@8..9 "\n"

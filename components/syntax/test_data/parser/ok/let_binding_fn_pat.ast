@@ -1,51 +1,53 @@
-Code@0..43
-  LetBinding@0..25
-    Let@0..3 "let"
-    Whitespace@3..4 " "
-    FnPat@4..13
-      Ident@4..7 "add"
-      Params@7..13
-        OpenParen@7..8 "("
-        Param@8..9
-          IdentPat@8..9
-            Name@8..9
-              Ident@8..9 "x"
-        Comma@9..10 ","
-        Whitespace@10..11 " "
-        Param@11..12
-          IdentPat@11..12
-            Name@11..12
-              Ident@11..12 "y"
-        CloseParen@12..13 ")"
-    Whitespace@13..14 " "
-    Eq@14..15 "="
-    Whitespace@15..16 " "
-    BinaryExpr@16..25
-      NameRef@16..17
-        Ident@16..17 "x"
-      Whitespace@17..18 " "
-      Plus@18..19 "+"
-      Whitespace@19..20 " "
-      NameRef@20..21
-        Ident@20..21 "y"
-      Whitespace@21..25 "\n\n\n\n"
-  LetBinding@25..43
-    Let@25..28 "let"
-    Whitespace@28..29 " "
-    FnPat@29..34
-      Ident@29..32 "two"
-      Params@32..34
-        OpenParen@32..33 "("
-        CloseParen@33..34 ")"
-    Whitespace@34..35 " "
-    Eq@35..36 "="
+Code@0..45
+  Pound@0..1 "#"
+  LetBinding@1..26
+    Let@1..4 "let"
+    Whitespace@4..5 " "
+    FnPat@5..14
+      Ident@5..8 "add"
+      Params@8..14
+        OpenParen@8..9 "("
+        Param@9..10
+          IdentPat@9..10
+            Name@9..10
+              Ident@9..10 "x"
+        Comma@10..11 ","
+        Whitespace@11..12 " "
+        Param@12..13
+          IdentPat@12..13
+            Name@12..13
+              Ident@12..13 "y"
+        CloseParen@13..14 ")"
+    Whitespace@14..15 " "
+    Eq@15..16 "="
+    Whitespace@16..17 " "
+    BinaryExpr@17..26
+      NameRef@17..18
+        Ident@17..18 "x"
+      Whitespace@18..19 " "
+      Plus@19..20 "+"
+      Whitespace@20..21 " "
+      NameRef@21..22
+        Ident@21..22 "y"
+      Whitespace@22..26 "\n\n\n\n"
+  Pound@26..27 "#"
+  LetBinding@27..45
+    Let@27..30 "let"
+    Whitespace@30..31 " "
+    FnPat@31..36
+      Ident@31..34 "two"
+      Params@34..36
+        OpenParen@34..35 "("
+        CloseParen@35..36 ")"
     Whitespace@36..37 " "
-    BinaryExpr@37..43
-      Literal@37..38
-        Int@37..38 "1"
-      Whitespace@38..39 " "
-      Plus@39..40 "+"
+    Eq@37..38 "="
+    Whitespace@38..39 " "
+    BinaryExpr@39..45
+      Literal@39..40
+        Int@39..40 "1"
       Whitespace@40..41 " "
-      Literal@41..42
-        Int@41..42 "1"
-      Whitespace@42..43 "\n"
+      Plus@41..42 "+"
+      Whitespace@42..43 " "
+      Literal@43..44
+        Int@43..44 "1"
+      Whitespace@44..45 "\n"

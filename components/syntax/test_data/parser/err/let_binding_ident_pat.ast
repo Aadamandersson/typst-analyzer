@@ -1,10 +1,11 @@
-Code@0..8
-  LetBinding@0..8
-    Let@0..3 "let"
-    Whitespace@3..4 " "
-    IdentPat@4..5
-      Ident@4..5 "x"
-    Whitespace@5..6 " "
-    Eq@6..7 "="
-    Whitespace@7..8 "\n"
-error: 8: expected expression
+Code@0..9
+  Pound@0..1 "#"
+  LetBinding@1..9
+    Let@1..4 "let"
+    Whitespace@4..5 " "
+    IdentPat@5..6
+      Ident@5..6 "x"
+    Whitespace@6..7 " "
+    Eq@7..8 "="
+    Whitespace@8..9 "\n"
+error: 9: expected expression

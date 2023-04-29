@@ -1,23 +1,24 @@
-Code@0..20
-  LetBinding@0..20
-    Let@0..3 "let"
-    Whitespace@3..4 " "
-    IdentPat@4..7
-      Ident@4..7 "arr"
-    Whitespace@7..8 " "
-    Eq@8..9 "="
-    Whitespace@9..10 " "
-    ArrayExpr@10..19
-      OpenParen@10..11 "("
-      Literal@11..12
-        Int@11..12 "1"
-      Comma@12..13 ","
-      Whitespace@13..14 " "
-      Literal@14..15
-        Int@14..15 "2"
-      Comma@15..16 ","
-      Whitespace@16..17 " "
-      Literal@17..18
-        Int@17..18 "3"
-      CloseParen@18..19 ")"
-    Whitespace@19..20 "\n"
+Code@0..21
+  Pound@0..1 "#"
+  LetBinding@1..21
+    Let@1..4 "let"
+    Whitespace@4..5 " "
+    IdentPat@5..8
+      Ident@5..8 "arr"
+    Whitespace@8..9 " "
+    Eq@9..10 "="
+    Whitespace@10..11 " "
+    ArrayExpr@11..20
+      OpenParen@11..12 "("
+      Literal@12..13
+        Int@12..13 "1"
+      Comma@13..14 ","
+      Whitespace@14..15 " "
+      Literal@15..16
+        Int@15..16 "2"
+      Comma@16..17 ","
+      Whitespace@17..18 " "
+      Literal@18..19
+        Int@18..19 "3"
+      CloseParen@19..20 ")"
+    Whitespace@20..21 "\n"
