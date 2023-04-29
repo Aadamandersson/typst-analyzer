@@ -72,6 +72,8 @@ pub enum SyntaxKind {
     Colon,
     /// `$`
     Dollar,
+    /// `#`
+    Pound,
     /// ```
     Backtick,
     /// `and` keyword.

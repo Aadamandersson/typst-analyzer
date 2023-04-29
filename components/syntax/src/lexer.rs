@@ -108,6 +108,7 @@ impl<'s> Lexer<'s> {
             ';' => SyntaxKind::Semi,
             ':' => SyntaxKind::Colon,
             '$' => SyntaxKind::Dollar,
+            '#' => SyntaxKind::Pound,
             '`' => SyntaxKind::Backtick,
             '\0' => SyntaxKind::Eof,
             _ => {
