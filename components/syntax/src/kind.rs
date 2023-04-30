@@ -136,6 +136,10 @@ pub enum SyntaxKind {
     UnaryExpr,
     /// E.g., `(1 + 2)`
     ParenExpr,
+    /// `break`
+    BreakExpr,
+    /// `continue`
+    ContinueExpr,
     /// E.g., `(1, 2, 3)`
     ArrayExpr,
     /// `let pat [= expr]`

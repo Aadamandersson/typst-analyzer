@@ -293,6 +293,8 @@ fn code(p: &mut Parser) {
 fn code_expr(p: &mut Parser) -> bool {
     match p.curr {
         SyntaxKind::Let => let_binding(p),
+        SyntaxKind::Continue => continue_expr(p),
+        SyntaxKind::Break => break_expr(p),
         _ => code_prec_expr(p, 0),
     }
 }
@@ -336,6 +338,20 @@ fn let_binding(p: &mut Parser) -> bool {
         }
     }
 
+    p.wrap();
+    true
+}
+
+fn continue_expr(p: &mut Parser) -> bool {
+    p.start(SyntaxKind::ContinueExpr);
+    p.bump();
+    p.wrap();
+    true
+}
+
+fn break_expr(p: &mut Parser) -> bool {
+    p.start(SyntaxKind::BreakExpr);
+    p.bump();
     p.wrap();
     true
 }
