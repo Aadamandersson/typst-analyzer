@@ -1,0 +1,9 @@
+Code@0..11
+  Pound@0..1 "#"
+  ContentBlock@1..10
+    OpenBrack@1..2 "["
+    Star@2..3 "*"
+    Ident@3..8 "hello"
+    Star@8..9 "*"
+    CloseBrack@9..10 "]"
+  Whitespace@10..11 "\n"

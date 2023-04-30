@@ -411,6 +411,7 @@ fn code_primary_expr(p: &mut Parser) -> bool {
     match p.curr {
         SyntaxKind::Ident => name_ref(p),
         SyntaxKind::OpenParen => parenthesized(p),
+        SyntaxKind::OpenBrack => content_block(p),
         SyntaxKind::OpenBrace => code_block(p),
         SyntaxKind::Int | SyntaxKind::Float | SyntaxKind::String => literal(p),
         _ => return false,
@@ -455,6 +456,19 @@ fn parenthesized(p: &mut Parser) {
         p.start_at(cp, SyntaxKind::ArrayExpr)
     }
 
+    p.wrap();
+}
+
+fn content_block(p: &mut Parser) {
+    p.start(SyntaxKind::ContentBlock);
+    p.expect(SyntaxKind::OpenBrack);
+
+    while !p.at(SyntaxKind::Eof) && !p.at(SyntaxKind::CloseBrack) {
+        // Since we do not _parse_ markup yet, just eat the body
+        p.bump();
+    }
+
+    p.expect(SyntaxKind::CloseBrack);
     p.wrap();
 }
 

@@ -126,6 +126,8 @@ pub enum SyntaxKind {
     Code,
     /// `{ ... }`
     CodeBlock,
+    /// `[ ... ]`
+    ContentBlock,
     /// E.g., `1`
     Literal,
     /// E.g., `1 + 2`
