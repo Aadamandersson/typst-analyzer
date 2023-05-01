@@ -429,7 +429,11 @@ fn code_primary_expr(p: &mut Parser) -> bool {
         SyntaxKind::OpenParen => parenthesized(p),
         SyntaxKind::OpenBrack => content_block(p),
         SyntaxKind::OpenBrace => code_block(p),
-        SyntaxKind::Int | SyntaxKind::Float | SyntaxKind::String => literal(p),
+        SyntaxKind::Int
+        | SyntaxKind::Float
+        | SyntaxKind::String
+        | SyntaxKind::True
+        | SyntaxKind::False => literal(p),
         _ => return false,
     }
     true
