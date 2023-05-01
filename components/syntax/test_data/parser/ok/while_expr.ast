@@ -1,0 +1,23 @@
+Code@0..30
+  Pound@0..1 "#"
+  WhileExpr@1..14
+    While@1..6 "while"
+    Whitespace@6..7 " "
+    Literal@7..11
+      True@7..11 "true"
+    Whitespace@11..12 " "
+    CodeBlock@12..14
+      OpenBrace@12..13 "{"
+      CloseBrace@13..14 "}"
+  Whitespace@14..15 "\n"
+  Pound@15..16 "#"
+  WhileExpr@16..29
+    While@16..21 "while"
+    Whitespace@21..22 " "
+    Literal@22..26
+      True@22..26 "true"
+    Whitespace@26..27 " "
+    ContentBlock@27..29
+      OpenBrack@27..28 "["
+      CloseBrack@28..29 "]"
+  Whitespace@29..30 "\n"

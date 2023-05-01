@@ -293,6 +293,7 @@ fn code(p: &mut Parser) {
 fn code_expr(p: &mut Parser) -> bool {
     match p.curr {
         SyntaxKind::Let => let_binding(p),
+        SyntaxKind::While => while_expr(p),
         SyntaxKind::Continue => continue_expr(p),
         SyntaxKind::Break => break_expr(p),
         _ => code_prec_expr(p, 0),
@@ -340,6 +341,27 @@ fn let_binding(p: &mut Parser) -> bool {
 
     p.wrap();
     true
+}
+
+fn while_expr(p: &mut Parser) -> bool {
+    p.start(SyntaxKind::WhileExpr);
+    p.bump();
+
+    if !code_expr(p) {
+        p.error("expected expression")
+    }
+
+    block(p);
+    p.wrap();
+    true
+}
+
+fn block(p: &mut Parser) {
+    match p.curr {
+        SyntaxKind::OpenBrack => content_block(p),
+        SyntaxKind::OpenBrace => code_block(p),
+        _ => p.error("expected block"),
+    }
 }
 
 fn continue_expr(p: &mut Parser) -> bool {

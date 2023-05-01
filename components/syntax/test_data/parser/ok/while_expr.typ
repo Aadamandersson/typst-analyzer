@@ -1,0 +1,2 @@
+#while true {}
+#while true []
