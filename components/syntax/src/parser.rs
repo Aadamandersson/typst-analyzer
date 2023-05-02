@@ -280,9 +280,22 @@ impl<'s> Parser<'s> {
 fn code(p: &mut Parser) {
     p.start(SyntaxKind::Code);
     while !p.at(SyntaxKind::Eof) {
+        // TODO: handle this properly when we support parsing markup.
+        p.eat_trivia();
+        if p.at(SyntaxKind::Eof) {
+            break;
+        }
+
+        if p.at(SyntaxKind::Pound) {
+            p.bump();
+        }
+
+        let prev = p.curr;
+        code_expr(p);
         // We always want to construct a syntax tree, so just bump the parser
         // if we encounter something that we have not yet implemented support for.
-        if !code_expr(p) {
+        // Eventually, we want to report an error here.
+        if prev == p.curr {
             p.bump();
         }
     }
@@ -290,7 +303,7 @@ fn code(p: &mut Parser) {
     p.wrap();
 }
 
-fn code_expr(p: &mut Parser) -> bool {
+fn code_expr(p: &mut Parser) {
     match p.curr {
         SyntaxKind::Let => let_binding(p),
         SyntaxKind::While => while_expr(p),
@@ -300,7 +313,7 @@ fn code_expr(p: &mut Parser) -> bool {
     }
 }
 
-fn let_binding(p: &mut Parser) -> bool {
+fn let_binding(p: &mut Parser) {
     p.start(SyntaxKind::LetBinding);
     p.bump();
     p.eat_trivia();
@@ -330,30 +343,24 @@ fn let_binding(p: &mut Parser) -> bool {
     p.eat_trivia();
     if is_fn {
         p.expect(SyntaxKind::Eq);
-        if !code_expr(p) {
-            p.error("expected expression");
-        }
+        code_expr(p);
     } else {
-        if p.eat(SyntaxKind::Eq) && !code_expr(p) {
-            p.error("expected expression");
+        if p.eat(SyntaxKind::Eq) {
+            code_expr(p);
         }
     }
 
     p.wrap();
-    true
 }
 
-fn while_expr(p: &mut Parser) -> bool {
+fn while_expr(p: &mut Parser) {
     p.start(SyntaxKind::WhileExpr);
+
     p.bump();
-
-    if !code_expr(p) {
-        p.error("expected expression")
-    }
-
+    code_expr(p);
     block(p);
+
     p.wrap();
-    true
 }
 
 fn block(p: &mut Parser) {
@@ -364,18 +371,16 @@ fn block(p: &mut Parser) {
     }
 }
 
-fn continue_expr(p: &mut Parser) -> bool {
+fn continue_expr(p: &mut Parser) {
     p.start(SyntaxKind::ContinueExpr);
     p.bump();
     p.wrap();
-    true
 }
 
-fn break_expr(p: &mut Parser) -> bool {
+fn break_expr(p: &mut Parser) {
     p.start(SyntaxKind::BreakExpr);
     p.bump();
     p.wrap();
-    true
 }
 
 fn params(p: &mut Parser) {
@@ -403,17 +408,15 @@ fn param(p: &mut Parser) {
 }
 
 // TODO: `BinOp::NotIn`
-fn code_prec_expr(p: &mut Parser, min_prec: u8) -> bool {
+fn code_prec_expr(p: &mut Parser, min_prec: u8) {
     let cp = p.checkpoint();
     if let Some(op) = UnOp::from_kind(p.curr) {
         p.start(SyntaxKind::UnaryExpr);
         p.bump();
-        if !code_prec_expr(p, op.prec()) {
-            p.error("expected expression");
-        }
+        code_prec_expr(p, op.prec());
         p.wrap();
-    } else if !code_primary_expr(p) {
-        return false;
+    } else {
+        code_primary_expr(p);
     }
 
     p.eat_trivia();
@@ -434,18 +437,13 @@ fn code_prec_expr(p: &mut Parser, min_prec: u8) -> bool {
             Assoc::Right => op.prec(),
         };
 
-        if !code_prec_expr(p, prec) {
-            p.error("expected expression");
-        }
-
+        code_prec_expr(p, prec);
         p.start_at(cp, SyntaxKind::BinaryExpr);
         p.wrap();
     }
-
-    true
 }
 
-fn code_primary_expr(p: &mut Parser) -> bool {
+fn code_primary_expr(p: &mut Parser) {
     match p.curr {
         SyntaxKind::Ident => name_ref(p),
         SyntaxKind::OpenParen => parenthesized(p),
@@ -456,9 +454,8 @@ fn code_primary_expr(p: &mut Parser) -> bool {
         | SyntaxKind::String
         | SyntaxKind::True
         | SyntaxKind::False => literal(p),
-        _ => return false,
+        _ => p.error("expected expression"),
     }
-    true
 }
 
 fn name(p: &mut Parser) {
@@ -480,10 +477,7 @@ fn parenthesized(p: &mut Parser) {
 
     let mut elements = 0;
     while !p.at(SyntaxKind::Eof) && !p.at(SyntaxKind::CloseParen) {
-        if !code_expr(p) {
-            p.error("expected expression");
-        }
-
+        code_expr(p);
         elements += 1;
 
         if !p.eat(SyntaxKind::Comma) {
