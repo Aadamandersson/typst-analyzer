@@ -1,0 +1,36 @@
+Code@0..33
+  Pound@0..1 "#"
+  ForExpr@1..32
+    For@1..4 "for"
+    Whitespace@4..5 " "
+    IdentPat@5..6
+      Ident@5..6 "n"
+    Whitespace@6..7 " "
+    In@7..9 "in"
+    Whitespace@9..10 " "
+    ArrayExpr@10..19
+      OpenParen@10..11 "("
+      Literal@11..12
+        Int@11..12 "1"
+      Comma@12..13 ","
+      Whitespace@13..14 " "
+      Literal@14..15
+        Int@14..15 "2"
+      Comma@15..16 ","
+      Whitespace@16..17 " "
+      Literal@17..18
+        Int@17..18 "3"
+      CloseParen@18..19 ")"
+    Whitespace@19..20 " "
+    CodeBlock@20..32
+      OpenBrace@20..21 "{"
+      Whitespace@21..26 "\n    "
+      ParenExpr@26..30
+        OpenParen@26..27 "("
+        NameRef@27..28
+          Ident@27..28 "n"
+        Whitespace@28..29 " "
+        CloseParen@29..30 ")"
+      Whitespace@30..31 "\n"
+      CloseBrace@31..32 "}"
+  Whitespace@32..33 "\n"

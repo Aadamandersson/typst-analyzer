@@ -136,8 +136,10 @@ pub enum SyntaxKind {
     UnaryExpr,
     /// E.g., `(1 + 2)`
     ParenExpr,
-    /// `while condition block`
+    /// E.g., `while condition { ... }`
     WhileExpr,
+    /// E.g., `for n in "123" { ... }`
+    ForExpr,
     /// `break`
     BreakExpr,
     /// `continue`

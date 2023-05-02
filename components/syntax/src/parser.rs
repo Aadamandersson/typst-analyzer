@@ -307,6 +307,7 @@ fn code_expr(p: &mut Parser) {
     match p.curr {
         SyntaxKind::Let => let_binding(p),
         SyntaxKind::While => while_expr(p),
+        SyntaxKind::For => for_expr(p),
         SyntaxKind::Continue => continue_expr(p),
         SyntaxKind::Break => break_expr(p),
         _ => code_prec_expr(p, 0),
@@ -357,6 +358,31 @@ fn while_expr(p: &mut Parser) {
     p.start(SyntaxKind::WhileExpr);
 
     p.bump();
+    code_expr(p);
+    block(p);
+
+    p.wrap();
+}
+
+fn for_expr(p: &mut Parser) {
+    p.start(SyntaxKind::ForExpr);
+
+    p.bump();
+
+    let cp = p.checkpoint();
+    // TODO: support destructuring syntax
+    if p.eat(SyntaxKind::Ident) {
+        p.start_at(cp, SyntaxKind::IdentPat);
+        p.wrap();
+    } else if p.eat(SyntaxKind::Underscore) {
+        p.start_at(cp, SyntaxKind::WildcardPat);
+        p.wrap();
+    } else {
+        p.error("expected pattern");
+    }
+
+    p.eat_trivia();
+    p.expect(SyntaxKind::In);
     code_expr(p);
     block(p);
 
