@@ -17,7 +17,7 @@ impl Language for TypstLanguage {
 }
 
 pub type SyntaxNode = rowan::SyntaxNode<TypstLanguage>;
-// pub type SyntaxToken = rowan::SyntaxToken<TypstLanguage>;
+pub type SyntaxToken = rowan::SyntaxToken<TypstLanguage>;
 // pub type SyntaxElement = rowan::SyntaxToken<TypstLanguage>;
 pub type Checkpoint = rowan::Checkpoint;
 
