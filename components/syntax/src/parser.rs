@@ -472,6 +472,7 @@ fn code_prec_expr(p: &mut Parser, min_prec: u8) {
 fn code_primary_expr(p: &mut Parser) {
     match p.curr {
         SyntaxKind::Ident => name_ref(p),
+        SyntaxKind::If => if_expr(p),
         SyntaxKind::OpenParen => parenthesized(p),
         SyntaxKind::OpenBrack => content_block(p),
         SyntaxKind::OpenBrace => code_block(p),
@@ -493,6 +494,26 @@ fn name(p: &mut Parser) {
 fn name_ref(p: &mut Parser) {
     p.start(SyntaxKind::NameRef);
     p.bump();
+    p.wrap();
+}
+
+fn if_expr(p: &mut Parser) {
+    p.start(SyntaxKind::IfExpr);
+
+    p.bump();
+    code_expr(p);
+    block(p);
+
+    p.eat_trivia();
+    if p.eat(SyntaxKind::Else) {
+        p.eat_trivia();
+        if p.at(SyntaxKind::If) {
+            if_expr(p);
+        } else {
+            block(p);
+        }
+    }
+
     p.wrap();
 }
 

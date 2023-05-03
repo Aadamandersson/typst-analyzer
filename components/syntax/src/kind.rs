@@ -140,6 +140,8 @@ pub enum SyntaxKind {
     WhileExpr,
     /// E.g., `for n in "123" { ... }`
     ForExpr,
+    /// E.g., `if cond { ... } else if cond { ... } else { ... }`
+    IfExpr,
     /// `break`
     BreakExpr,
     /// `continue`

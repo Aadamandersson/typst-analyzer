@@ -1,0 +1,12 @@
+Code@0..12
+  Pound@0..1 "#"
+  IfExpr@1..12
+    If@1..3 "if"
+    Whitespace@3..4 " "
+    Literal@4..8
+      True@4..8 "true"
+    Whitespace@8..9 " "
+    CodeBlock@9..11
+      OpenBrace@9..10 "{"
+      CloseBrace@10..11 "}"
+    Whitespace@11..12 "\n"
