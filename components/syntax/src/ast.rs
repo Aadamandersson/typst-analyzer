@@ -472,6 +472,46 @@ impl AstToken for String {
     }
 }
 
+#[derive(Clone, Debug)]
+pub struct Comment(SyntaxToken);
+
+impl AstToken for Comment {
+    fn cast(origin: SyntaxToken) -> Option<Self>
+    where
+        Self: Sized,
+    {
+        if origin.kind() == SyntaxKind::Comment {
+            Some(Self(origin))
+        } else {
+            None
+        }
+    }
+
+    fn origin(&self) -> &SyntaxToken {
+        &self.0
+    }
+}
+
+#[derive(Clone, Debug)]
+pub struct Whitespace(SyntaxToken);
+
+impl AstToken for Whitespace {
+    fn cast(origin: SyntaxToken) -> Option<Self>
+    where
+        Self: Sized,
+    {
+        if origin.kind() == SyntaxKind::Whitespace {
+            Some(Self(origin))
+        } else {
+            None
+        }
+    }
+
+    fn origin(&self) -> &SyntaxToken {
+        &self.0
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
