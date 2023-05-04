@@ -188,6 +188,7 @@ pub enum Expr {
     Literal(Literal),
     BinaryExpr(BinaryExpr),
     UnaryExpr(UnaryExpr),
+    ParenExpr(ParenExpr),
 }
 
 impl AstNode for Expr {
@@ -199,7 +200,7 @@ impl AstNode for Expr {
             SyntaxKind::Literal => Expr::Literal(Literal(origin)),
             SyntaxKind::BinaryExpr => Expr::BinaryExpr(BinaryExpr(origin)),
             SyntaxKind::UnaryExpr => Expr::UnaryExpr(UnaryExpr(origin)),
-            SyntaxKind::ParenExpr => todo!(),
+            SyntaxKind::ParenExpr => Expr::ParenExpr(ParenExpr(origin)),
             SyntaxKind::WhileExpr => todo!(),
             SyntaxKind::ForExpr => todo!(),
             SyntaxKind::IfExpr => todo!(),
@@ -217,6 +218,7 @@ impl AstNode for Expr {
             Expr::Literal(e) => e.origin(),
             Expr::BinaryExpr(e) => e.origin(),
             Expr::UnaryExpr(e) => e.origin(),
+            Expr::ParenExpr(e) => e.origin(),
         }
     }
 }
@@ -351,6 +353,46 @@ impl AstNode for UnaryExpr {
 }
 
 #[derive(Clone, Debug)]
+pub struct ParenExpr(SyntaxNode);
+
+impl ParenExpr {
+    pub fn open_paren(&self) -> Option<SyntaxToken> {
+        self.0
+            .children_with_tokens()
+            .filter_map(|it| it.into_token())
+            .find(|it| it.kind() == SyntaxKind::OpenParen)
+    }
+
+    pub fn expr(&self) -> Option<Expr> {
+        self.0.children().find_map(Expr::cast)
+    }
+
+    pub fn close_paren(&self) -> Option<SyntaxToken> {
+        self.0
+            .children_with_tokens()
+            .filter_map(|it| it.into_token())
+            .find(|it| it.kind() == SyntaxKind::CloseParen)
+    }
+}
+
+impl AstNode for ParenExpr {
+    fn cast(origin: SyntaxNode) -> Option<Self>
+    where
+        Self: Sized,
+    {
+        if origin.kind() == SyntaxKind::ParenExpr {
+            Some(Self(origin))
+        } else {
+            None
+        }
+    }
+
+    fn origin(&self) -> &SyntaxNode {
+        &self.0
+    }
+}
+
+#[derive(Clone, Debug)]
 pub struct Ident(SyntaxToken);
 
 impl AstToken for Ident {
@@ -437,14 +479,14 @@ mod tests {
     #[test]
     fn literal() {
         let (root, _) = crate::parser::parse(r#"let foo = "bar""#);
-        let lit = root.descendants().find_map(Literal::cast).unwrap();
+        let lit = expr::<Literal>(&root);
         assert_eq!(r#""bar""#, lit.token().text());
     }
 
     #[test]
     fn binary_expr() {
         let (root, _) = crate::parser::parse("1 + 2");
-        let binary = root.descendants().find_map(BinaryExpr::cast).unwrap();
+        let binary = expr::<BinaryExpr>(&root);
         let lhs = stringify_expr(&binary.lhs().unwrap());
         let rhs = stringify_expr(&binary.rhs().unwrap());
         assert_eq!("1", lhs);
@@ -455,10 +497,24 @@ mod tests {
     #[test]
     fn unary_expr() {
         let (root, _) = crate::parser::parse("-2");
-        let unary = root.descendants().find_map(UnaryExpr::cast).unwrap();
+        let unary = expr::<UnaryExpr>(&root);
         let operand = stringify_expr(&unary.operand().unwrap());
         assert_eq!("-", unary.op().unwrap().text());
         assert_eq!("2", operand);
+    }
+
+    #[test]
+    fn paren_expr() {
+        let (root, _) = crate::parser::parse("(1 + 2)");
+        let paren_expr = expr::<ParenExpr>(&root);
+        let expr = stringify_expr(&paren_expr.expr().unwrap());
+        assert_eq!("(", paren_expr.open_paren().unwrap().text());
+        assert_eq!("1 + 2", expr);
+        assert_eq!(")", paren_expr.close_paren().unwrap().text());
+    }
+
+    fn expr<N: AstNode>(root: &SyntaxNode) -> N {
+        root.descendants().find_map(N::cast).unwrap()
     }
 
     fn stringify_expr(expr: &Expr) -> std::string::String {
