@@ -187,6 +187,7 @@ impl BinOp {
 pub enum Expr {
     Literal(Literal),
     BinaryExpr(BinaryExpr),
+    UnaryExpr(UnaryExpr),
 }
 
 impl AstNode for Expr {
@@ -197,7 +198,7 @@ impl AstNode for Expr {
         Some(match origin.kind() {
             SyntaxKind::Literal => Expr::Literal(Literal(origin)),
             SyntaxKind::BinaryExpr => Expr::BinaryExpr(BinaryExpr(origin)),
-            SyntaxKind::UnaryExpr => todo!(),
+            SyntaxKind::UnaryExpr => Expr::UnaryExpr(UnaryExpr(origin)),
             SyntaxKind::ParenExpr => todo!(),
             SyntaxKind::WhileExpr => todo!(),
             SyntaxKind::ForExpr => todo!(),
@@ -215,6 +216,7 @@ impl AstNode for Expr {
         match self {
             Expr::Literal(e) => e.origin(),
             Expr::BinaryExpr(e) => e.origin(),
+            Expr::UnaryExpr(e) => e.origin(),
         }
     }
 }
@@ -307,6 +309,36 @@ impl AstNode for BinaryExpr {
         Self: Sized,
     {
         if origin.kind() == SyntaxKind::BinaryExpr {
+            Some(Self(origin))
+        } else {
+            None
+        }
+    }
+
+    fn origin(&self) -> &SyntaxNode {
+        &self.0
+    }
+}
+
+#[derive(Clone, Debug)]
+pub struct UnaryExpr(SyntaxNode);
+
+impl UnaryExpr {
+    pub fn op(&self) -> Option<SyntaxToken> {
+        self.0.first_child_or_token()?.into_token()
+    }
+
+    pub fn operand(&self) -> Option<Expr> {
+        self.0.children().find_map(Expr::cast)
+    }
+}
+
+impl AstNode for UnaryExpr {
+    fn cast(origin: SyntaxNode) -> Option<Self>
+    where
+        Self: Sized,
+    {
+        if origin.kind() == SyntaxKind::UnaryExpr {
             Some(Self(origin))
         } else {
             None
@@ -413,10 +445,23 @@ mod tests {
     fn binary_expr() {
         let (root, _) = crate::parser::parse("1 + 2");
         let binary = root.descendants().find_map(BinaryExpr::cast).unwrap();
-        let lhs = binary.lhs().unwrap().origin().text().to_string();
-        let rhs = binary.rhs().unwrap().origin().text().to_string();
+        let lhs = stringify_expr(&binary.lhs().unwrap());
+        let rhs = stringify_expr(&binary.rhs().unwrap());
         assert_eq!("1", lhs);
         assert_eq!("+", binary.op().unwrap().text());
         assert_eq!("2", rhs);
+    }
+
+    #[test]
+    fn unary_expr() {
+        let (root, _) = crate::parser::parse("-2");
+        let unary = root.descendants().find_map(UnaryExpr::cast).unwrap();
+        let operand = stringify_expr(&unary.operand().unwrap());
+        assert_eq!("-", unary.op().unwrap().text());
+        assert_eq!("2", operand);
+    }
+
+    fn stringify_expr(expr: &Expr) -> std::string::String {
+        expr.origin().text().to_string()
     }
 }
