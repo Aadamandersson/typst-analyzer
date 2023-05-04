@@ -5,7 +5,7 @@ use crate::{
 
 /// A trait for casting an untyped `SyntaxNode` to a typed AST.
 pub trait AstNode {
-    fn cast(&self, origin: SyntaxNode) -> Option<Self>
+    fn cast(origin: SyntaxNode) -> Option<Self>
     where
         Self: Sized;
 
@@ -14,7 +14,7 @@ pub trait AstNode {
 
 /// A trait for casting an untyped `SyntaxToken` to a typed token.
 pub trait AstToken {
-    fn cast(&self, origin: SyntaxToken) -> Option<Self>
+    fn cast(origin: SyntaxToken) -> Option<Self>
     where
         Self: Sized;
 
@@ -29,8 +29,14 @@ pub enum Expr {
 #[derive(Clone, Debug)]
 pub struct Literal(SyntaxNode);
 
+impl Literal {
+    pub fn token(&self) -> SyntaxToken {
+        self.0.first_child_or_token().and_then(|n| n.into_token()).unwrap()
+    }
+}
+
 impl AstNode for Literal {
-    fn cast(&self, origin: SyntaxNode) -> Option<Self>
+    fn cast(origin: SyntaxNode) -> Option<Self>
     where
         Self: Sized,
     {
@@ -50,7 +56,7 @@ impl AstNode for Literal {
 pub struct Ident(SyntaxToken);
 
 impl AstToken for Ident {
-    fn cast(&self, origin: SyntaxToken) -> Option<Self>
+    fn cast(origin: SyntaxToken) -> Option<Self>
     where
         Self: Sized,
     {
@@ -70,7 +76,7 @@ impl AstToken for Ident {
 pub struct Int(SyntaxToken);
 
 impl AstToken for Int {
-    fn cast(&self, origin: SyntaxToken) -> Option<Self>
+    fn cast(origin: SyntaxToken) -> Option<Self>
     where
         Self: Sized,
     {
@@ -90,7 +96,7 @@ impl AstToken for Int {
 pub struct Float(SyntaxToken);
 
 impl AstToken for Float {
-    fn cast(&self, origin: SyntaxToken) -> Option<Self>
+    fn cast(origin: SyntaxToken) -> Option<Self>
     where
         Self: Sized,
     {
@@ -110,7 +116,7 @@ impl AstToken for Float {
 pub struct String(SyntaxToken);
 
 impl AstToken for String {
-    fn cast(&self, origin: SyntaxToken) -> Option<Self>
+    fn cast(origin: SyntaxToken) -> Option<Self>
     where
         Self: Sized,
     {
@@ -123,5 +129,17 @@ impl AstToken for String {
 
     fn origin(&self) -> &SyntaxToken {
         &self.0
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_literal_token() {
+        let (root, _) = crate::parser::parse(r#"let foo = "bar""#);
+        let lit = root.descendants().find_map(Literal::cast).unwrap();
+        assert_eq!(r#""bar""#, lit.token().text());
     }
 }
