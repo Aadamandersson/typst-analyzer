@@ -185,10 +185,12 @@ impl BinOp {
 
 #[derive(Clone, Debug)]
 pub enum Expr {
+    CodeBlock(CodeBlock),
     Literal(Literal),
     BinaryExpr(BinaryExpr),
     UnaryExpr(UnaryExpr),
     ParenExpr(ParenExpr),
+    WhileExpr(WhileExpr),
 }
 
 impl AstNode for Expr {
@@ -197,11 +199,12 @@ impl AstNode for Expr {
         Self: Sized,
     {
         Some(match origin.kind() {
+            SyntaxKind::CodeBlock => Expr::CodeBlock(CodeBlock(origin)),
             SyntaxKind::Literal => Expr::Literal(Literal(origin)),
             SyntaxKind::BinaryExpr => Expr::BinaryExpr(BinaryExpr(origin)),
             SyntaxKind::UnaryExpr => Expr::UnaryExpr(UnaryExpr(origin)),
             SyntaxKind::ParenExpr => Expr::ParenExpr(ParenExpr(origin)),
-            SyntaxKind::WhileExpr => todo!(),
+            SyntaxKind::WhileExpr => Expr::WhileExpr(WhileExpr(origin)),
             SyntaxKind::ForExpr => todo!(),
             SyntaxKind::IfExpr => todo!(),
             SyntaxKind::BreakExpr => todo!(),
@@ -215,11 +218,53 @@ impl AstNode for Expr {
 
     fn origin(&self) -> &SyntaxNode {
         match self {
+            Expr::CodeBlock(e) => e.origin(),
             Expr::Literal(e) => e.origin(),
             Expr::BinaryExpr(e) => e.origin(),
             Expr::UnaryExpr(e) => e.origin(),
             Expr::ParenExpr(e) => e.origin(),
+            Expr::WhileExpr(e) => e.origin(),
         }
+    }
+}
+
+#[derive(Clone, Debug)]
+pub struct CodeBlock(SyntaxNode);
+
+impl CodeBlock {
+    pub fn open_brace(&self) -> Option<SyntaxToken> {
+        self.0
+            .children_with_tokens()
+            .filter_map(|it| it.into_token())
+            .find(|it| it.kind() == SyntaxKind::OpenBrace)
+    }
+
+    pub fn body(&self) -> ChildIter<Expr> {
+        children(&self.0)
+    }
+
+    pub fn close_brace(&self) -> Option<SyntaxToken> {
+        self.0
+            .children_with_tokens()
+            .filter_map(|it| it.into_token())
+            .find(|it| it.kind() == SyntaxKind::CloseBrace)
+    }
+}
+
+impl AstNode for CodeBlock {
+    fn cast(origin: SyntaxNode) -> Option<Self>
+    where
+        Self: Sized,
+    {
+        if origin.kind() == SyntaxKind::CodeBlock {
+            Some(Self(origin))
+        } else {
+            None
+        }
+    }
+
+    fn origin(&self) -> &SyntaxNode {
+        &self.0
     }
 }
 
@@ -393,6 +438,43 @@ impl AstNode for ParenExpr {
 }
 
 #[derive(Clone, Debug)]
+pub struct WhileExpr(SyntaxNode);
+
+impl WhileExpr {
+    pub fn token(&self) -> SyntaxToken {
+        self.0
+            .first_child_or_token()
+            .and_then(|it| it.into_token())
+            .unwrap()
+    }
+
+    pub fn condition(&self) -> Option<Expr> {
+        self.0.children().find_map(Expr::cast)
+    }
+
+    pub fn body(&self) -> Option<CodeBlock> {
+        self.0.children().find_map(CodeBlock::cast)
+    }
+}
+
+impl AstNode for WhileExpr {
+    fn cast(origin: SyntaxNode) -> Option<Self>
+    where
+        Self: Sized,
+    {
+        if origin.kind() == SyntaxKind::WhileExpr {
+            Some(Self(origin))
+        } else {
+            None
+        }
+    }
+
+    fn origin(&self) -> &SyntaxNode {
+        &self.0
+    }
+}
+
+#[derive(Clone, Debug)]
 pub struct Ident(SyntaxToken);
 
 impl AstToken for Ident {
@@ -517,6 +599,16 @@ mod tests {
     use super::*;
 
     #[test]
+    fn code_block() {
+        let (root, _) = crate::parser::parse("{1 + 2}");
+        let block = expr::<CodeBlock>(&root);
+        let expr = stringify_expr(&block.body().next().unwrap());
+        assert_eq!("{", block.open_brace().unwrap().text());
+        assert_eq!("1 + 2", expr);
+        assert_eq!("}", block.close_brace().unwrap().text());
+    }
+
+    #[test]
     fn literal() {
         let (root, _) = crate::parser::parse(r#"let foo = "bar""#);
         let lit = expr::<Literal>(&root);
@@ -551,6 +643,17 @@ mod tests {
         assert_eq!("(", paren_expr.open_paren().unwrap().text());
         assert_eq!("1 + 2", expr);
         assert_eq!(")", paren_expr.close_paren().unwrap().text());
+    }
+
+    #[test]
+    fn while_expr() {
+        let (root, _) = crate::parser::parse("while true {}");
+        let while_expr = expr::<WhileExpr>(&root);
+        let condition = stringify_expr(&while_expr.condition().unwrap());
+        let has_body = while_expr.body().is_some();
+        assert_eq!("while", while_expr.token().text());
+        assert_eq!("true", condition);
+        assert_eq!(true, has_body);
     }
 
     fn expr<N: AstNode>(root: &SyntaxNode) -> N {
