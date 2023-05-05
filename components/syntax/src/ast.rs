@@ -233,10 +233,7 @@ pub struct CodeBlock(SyntaxNode);
 
 impl CodeBlock {
     pub fn open_brace(&self) -> Option<SyntaxToken> {
-        self.0
-            .children_with_tokens()
-            .filter_map(|it| it.into_token())
-            .find(|it| it.kind() == SyntaxKind::OpenBrace)
+        token(&self.0, SyntaxKind::OpenBrace)
     }
 
     pub fn body(&self) -> ChildIter<Expr> {
@@ -244,10 +241,7 @@ impl CodeBlock {
     }
 
     pub fn close_brace(&self) -> Option<SyntaxToken> {
-        self.0
-            .children_with_tokens()
-            .filter_map(|it| it.into_token())
-            .find(|it| it.kind() == SyntaxKind::CloseBrace)
+        token(&self.0, SyntaxKind::CloseBrace)
     }
 }
 
@@ -304,9 +298,9 @@ pub struct ChildIter<N> {
 }
 
 impl<N> ChildIter<N> {
-    pub fn new(root: &SyntaxNode) -> Self {
+    pub fn new(parent: &SyntaxNode) -> Self {
         Self {
-            inner: root.children(),
+            inner: parent.children(),
             marker: PhantomData,
         }
     }
@@ -320,8 +314,19 @@ impl<N: AstNode> Iterator for ChildIter<N> {
     }
 }
 
-fn children<N: AstNode>(root: &SyntaxNode) -> ChildIter<N> {
-    ChildIter::new(root)
+fn children<N: AstNode>(parent: &SyntaxNode) -> ChildIter<N> {
+    ChildIter::new(parent)
+}
+
+fn child<N: AstNode>(parent: &SyntaxNode) -> Option<N> {
+    parent.children().find_map(N::cast)
+}
+
+fn token(parent: &SyntaxNode, kind: SyntaxKind) -> Option<SyntaxToken> {
+    parent
+        .children_with_tokens()
+        .filter_map(|it| it.into_token())
+        .find(|it| it.kind() == kind)
 }
 
 #[derive(Clone, Debug)]
@@ -376,7 +381,7 @@ impl UnaryExpr {
     }
 
     pub fn operand(&self) -> Option<Expr> {
-        self.0.children().find_map(Expr::cast)
+        child(&self.0)
     }
 }
 
@@ -402,21 +407,15 @@ pub struct ParenExpr(SyntaxNode);
 
 impl ParenExpr {
     pub fn open_paren(&self) -> Option<SyntaxToken> {
-        self.0
-            .children_with_tokens()
-            .filter_map(|it| it.into_token())
-            .find(|it| it.kind() == SyntaxKind::OpenParen)
+        token(&self.0, SyntaxKind::OpenParen)
     }
 
     pub fn expr(&self) -> Option<Expr> {
-        self.0.children().find_map(Expr::cast)
+        child(&self.0)
     }
 
     pub fn close_paren(&self) -> Option<SyntaxToken> {
-        self.0
-            .children_with_tokens()
-            .filter_map(|it| it.into_token())
-            .find(|it| it.kind() == SyntaxKind::CloseParen)
+        token(&self.0, SyntaxKind::CloseParen)
     }
 }
 
@@ -449,11 +448,11 @@ impl WhileExpr {
     }
 
     pub fn condition(&self) -> Option<Expr> {
-        self.0.children().find_map(Expr::cast)
+        child(&self.0)
     }
 
     pub fn body(&self) -> Option<CodeBlock> {
-        self.0.children().find_map(CodeBlock::cast)
+        child(&self.0)
     }
 }
 
