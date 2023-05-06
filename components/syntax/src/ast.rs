@@ -184,6 +184,64 @@ impl BinOp {
 }
 
 #[derive(Clone, Debug)]
+pub enum Pat {
+    IdentPat(IdentPat),
+    WildcardPat(WildcardPat),
+}
+
+#[derive(Clone, Debug)]
+pub struct IdentPat(SyntaxNode);
+
+impl IdentPat {
+    pub fn ident(&self) -> Option<SyntaxToken> {
+        token(&self.0, SyntaxKind::Ident)
+    }
+}
+
+impl AstNode for IdentPat {
+    fn cast(origin: SyntaxNode) -> Option<Self>
+    where
+        Self: Sized,
+    {
+        if origin.kind() == SyntaxKind::IdentPat {
+            Some(Self(origin))
+        } else {
+            None
+        }
+    }
+
+    fn origin(&self) -> &SyntaxNode {
+        &self.0
+    }
+}
+
+#[derive(Clone, Debug)]
+pub struct WildcardPat(SyntaxNode);
+
+impl WildcardPat {
+    pub fn underscore(&self) -> Option<SyntaxToken> {
+        token(&self.0, SyntaxKind::Underscore)
+    }
+}
+
+impl AstNode for WildcardPat {
+    fn cast(origin: SyntaxNode) -> Option<Self>
+    where
+        Self: Sized,
+    {
+        if origin.kind() == SyntaxKind::IdentPat {
+            Some(Self(origin))
+        } else {
+            None
+        }
+    }
+
+    fn origin(&self) -> &SyntaxNode {
+        &self.0
+    }
+}
+
+#[derive(Clone, Debug)]
 pub enum Expr {
     CodeBlock(CodeBlock),
     Literal(Literal),
