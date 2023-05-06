@@ -269,6 +269,7 @@ pub enum Expr {
     UnaryExpr(UnaryExpr),
     ParenExpr(ParenExpr),
     WhileExpr(WhileExpr),
+    ForExpr(ForExpr),
 }
 
 impl AstNode for Expr {
@@ -283,7 +284,7 @@ impl AstNode for Expr {
             SyntaxKind::UnaryExpr => Expr::UnaryExpr(UnaryExpr(origin)),
             SyntaxKind::ParenExpr => Expr::ParenExpr(ParenExpr(origin)),
             SyntaxKind::WhileExpr => Expr::WhileExpr(WhileExpr(origin)),
-            SyntaxKind::ForExpr => todo!(),
+            SyntaxKind::ForExpr => Expr::ForExpr(ForExpr(origin)),
             SyntaxKind::IfExpr => todo!(),
             SyntaxKind::BreakExpr => todo!(),
             SyntaxKind::ContinueExpr => todo!(),
@@ -302,6 +303,7 @@ impl AstNode for Expr {
             Expr::UnaryExpr(e) => e.origin(),
             Expr::ParenExpr(e) => e.origin(),
             Expr::WhileExpr(e) => e.origin(),
+            Expr::ForExpr(e) => e.origin(),
         }
     }
 }
@@ -540,6 +542,51 @@ impl AstNode for WhileExpr {
         Self: Sized,
     {
         if origin.kind() == SyntaxKind::WhileExpr {
+            Some(Self(origin))
+        } else {
+            None
+        }
+    }
+
+    fn origin(&self) -> &SyntaxNode {
+        &self.0
+    }
+}
+
+#[derive(Clone, Debug)]
+pub struct ForExpr(SyntaxNode);
+
+impl ForExpr {
+    pub fn token(&self) -> SyntaxToken {
+        self.0
+            .first_child_or_token()
+            .and_then(|it| it.into_token())
+            .unwrap()
+    }
+
+    pub fn pat(&self) -> Option<Pat> {
+        child(&self.0)
+    }
+
+    pub fn in_token(&self) -> Option<SyntaxToken> {
+        token(&self.0, SyntaxKind::In)
+    }
+
+    pub fn collection(&self) -> Option<Expr> {
+        child(&self.0)
+    }
+
+    pub fn body(&self) -> Option<CodeBlock> {
+        child(&self.0)
+    }
+}
+
+impl AstNode for ForExpr {
+    fn cast(origin: SyntaxNode) -> Option<Self>
+    where
+        Self: Sized,
+    {
+        if origin.kind() == SyntaxKind::ForExpr {
             Some(Self(origin))
         } else {
             None
