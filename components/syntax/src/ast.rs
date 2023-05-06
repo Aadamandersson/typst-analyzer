@@ -189,6 +189,26 @@ pub enum Pat {
     WildcardPat(WildcardPat),
 }
 
+impl AstNode for Pat {
+    fn cast(origin: SyntaxNode) -> Option<Self>
+    where
+        Self: Sized,
+    {
+        Some(match origin.kind() {
+            SyntaxKind::IdentPat => Pat::IdentPat(IdentPat(origin)),
+            SyntaxKind::WildcardPat => Pat::WildcardPat(WildcardPat(origin)),
+            _ => return None,
+        })
+    }
+
+    fn origin(&self) -> &SyntaxNode {
+        match self {
+            Pat::IdentPat(p) => p.origin(),
+            Pat::WildcardPat(p) => p.origin(),
+        }
+    }
+}
+
 #[derive(Clone, Debug)]
 pub struct IdentPat(SyntaxNode);
 
