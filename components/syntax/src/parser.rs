@@ -186,10 +186,8 @@ fn let_binding(p: &mut Parser) {
     if is_fn {
         p.expect(SyntaxKind::Eq);
         code_expr(p);
-    } else {
-        if p.eat(SyntaxKind::Eq) {
-            code_expr(p);
-        }
+    } else if p.eat(SyntaxKind::Eq) {
+        code_expr(p);
     }
 
     p.wrap();
