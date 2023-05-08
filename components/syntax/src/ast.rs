@@ -271,6 +271,7 @@ pub enum Expr {
     WhileExpr(WhileExpr),
     ForExpr(ForExpr),
     BreakExpr(BreakExpr),
+    ContinueExpr(ContinueExpr),
 }
 
 impl AstNode for Expr {
@@ -288,7 +289,7 @@ impl AstNode for Expr {
             SyntaxKind::ForExpr => Expr::ForExpr(ForExpr(origin)),
             SyntaxKind::IfExpr => todo!(),
             SyntaxKind::BreakExpr => Expr::BreakExpr(BreakExpr(origin)),
-            SyntaxKind::ContinueExpr => todo!(),
+            SyntaxKind::ContinueExpr => Expr::ContinueExpr(ContinueExpr(origin)),
             SyntaxKind::ArrayExpr => todo!(),
             SyntaxKind::LetBinding => todo!(),
             SyntaxKind::NameRef => todo!(),
@@ -306,6 +307,7 @@ impl AstNode for Expr {
             Expr::WhileExpr(e) => e.origin(),
             Expr::ForExpr(e) => e.origin(),
             Expr::BreakExpr(e) => e.origin(),
+            Expr::ContinueExpr(e) => e.origin(),
         }
     }
 }
@@ -605,7 +607,7 @@ pub struct BreakExpr(SyntaxNode);
 
 impl BreakExpr {
     pub fn token(&self) -> Option<SyntaxToken> {
-        token(&self.0, SyntaxKind::BreakExpr)
+        token(&self.0, SyntaxKind::Break)
     }
 }
 
@@ -615,6 +617,32 @@ impl AstNode for BreakExpr {
         Self: Sized,
     {
         if origin.kind() == SyntaxKind::BreakExpr {
+            Some(Self(origin))
+        } else {
+            None
+        }
+    }
+
+    fn origin(&self) -> &SyntaxNode {
+        &self.0
+    }
+}
+
+#[derive(Clone, Debug)]
+pub struct ContinueExpr(SyntaxNode);
+
+impl ContinueExpr {
+    pub fn token(&self) -> Option<SyntaxToken> {
+        token(&self.0, SyntaxKind::Continue)
+    }
+}
+
+impl AstNode for ContinueExpr {
+    fn cast(origin: SyntaxNode) -> Option<Self>
+    where
+        Self: Sized,
+    {
+        if origin.kind() == SyntaxKind::ContinueExpr {
             Some(Self(origin))
         } else {
             None
