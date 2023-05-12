@@ -270,6 +270,7 @@ pub enum Expr {
     ParenExpr(ParenExpr),
     WhileExpr(WhileExpr),
     ForExpr(ForExpr),
+    IfExpr(IfExpr),
     BreakExpr(BreakExpr),
     ContinueExpr(ContinueExpr),
 }
@@ -287,7 +288,7 @@ impl AstNode for Expr {
             SyntaxKind::ParenExpr => Expr::ParenExpr(ParenExpr(origin)),
             SyntaxKind::WhileExpr => Expr::WhileExpr(WhileExpr(origin)),
             SyntaxKind::ForExpr => Expr::ForExpr(ForExpr(origin)),
-            SyntaxKind::IfExpr => todo!(),
+            SyntaxKind::IfExpr => Expr::IfExpr(IfExpr(origin)),
             SyntaxKind::BreakExpr => Expr::BreakExpr(BreakExpr(origin)),
             SyntaxKind::ContinueExpr => Expr::ContinueExpr(ContinueExpr(origin)),
             SyntaxKind::ArrayExpr => todo!(),
@@ -306,6 +307,7 @@ impl AstNode for Expr {
             Expr::ParenExpr(e) => e.origin(),
             Expr::WhileExpr(e) => e.origin(),
             Expr::ForExpr(e) => e.origin(),
+            Expr::IfExpr(e) => e.origin(),
             Expr::BreakExpr(e) => e.origin(),
             Expr::ContinueExpr(e) => e.origin(),
         }
@@ -591,6 +593,36 @@ impl AstNode for ForExpr {
         Self: Sized,
     {
         if origin.kind() == SyntaxKind::ForExpr {
+            Some(Self(origin))
+        } else {
+            None
+        }
+    }
+
+    fn origin(&self) -> &SyntaxNode {
+        &self.0
+    }
+}
+
+#[derive(Clone, Debug)]
+pub struct IfExpr(SyntaxNode);
+
+impl IfExpr {
+    pub fn if_token(&self) -> Option<SyntaxToken> {
+        token(&self.0, SyntaxKind::If)
+    }
+
+    pub fn else_token(&self) -> Option<SyntaxToken> {
+        token(&self.0, SyntaxKind::Else)
+    }
+}
+
+impl AstNode for IfExpr {
+    fn cast(origin: SyntaxNode) -> Option<Self>
+    where
+        Self: Sized,
+    {
+        if origin.kind() == SyntaxKind::IfExpr {
             Some(Self(origin))
         } else {
             None
