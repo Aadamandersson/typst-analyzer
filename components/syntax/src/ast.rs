@@ -274,6 +274,7 @@ pub enum Expr {
     BreakExpr(BreakExpr),
     ContinueExpr(ContinueExpr),
     ArrayExpr(ArrayExpr),
+    LetBinding(LetBinding),
 }
 
 impl AstNode for Expr {
@@ -293,7 +294,7 @@ impl AstNode for Expr {
             SyntaxKind::BreakExpr => Expr::BreakExpr(BreakExpr(origin)),
             SyntaxKind::ContinueExpr => Expr::ContinueExpr(ContinueExpr(origin)),
             SyntaxKind::ArrayExpr => Expr::ArrayExpr(ArrayExpr(origin)),
-            SyntaxKind::LetBinding => todo!(),
+            SyntaxKind::LetBinding => Expr::LetBinding(LetBinding(origin)),
             SyntaxKind::NameRef => todo!(),
             _ => return None,
         })
@@ -312,6 +313,7 @@ impl AstNode for Expr {
             Expr::BreakExpr(e) => e.origin(),
             Expr::ContinueExpr(e) => e.origin(),
             Expr::ArrayExpr(e) => e.origin(),
+            Expr::LetBinding(e) => e.origin(),
         }
     }
 }
@@ -711,6 +713,44 @@ impl AstNode for ArrayExpr {
         Self: Sized,
     {
         if origin.kind() == SyntaxKind::ArrayExpr {
+            Some(Self(origin))
+        } else {
+            None
+        }
+    }
+
+    fn origin(&self) -> &SyntaxNode {
+        &self.0
+    }
+}
+
+#[derive(Clone, Debug)]
+pub struct LetBinding(SyntaxNode);
+
+impl LetBinding {
+    pub fn let_token(&self) -> Option<SyntaxToken> {
+        token(&self.0, SyntaxKind::Let)
+    }
+
+    pub fn pat(&self) -> Option<Pat> {
+        child(&self.0)
+    }
+
+    pub fn eq_token(&self) -> Option<SyntaxToken> {
+        token(&self.0, SyntaxKind::Eq)
+    }
+
+    pub fn init(&self) -> Option<Expr> {
+        child(&self.0)
+    }
+}
+
+impl AstNode for LetBinding {
+    fn cast(origin: SyntaxNode) -> Option<Self>
+    where
+        Self: Sized,
+    {
+        if origin.kind() == SyntaxKind::LetBinding {
             Some(Self(origin))
         } else {
             None
