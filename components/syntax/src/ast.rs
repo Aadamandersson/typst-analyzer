@@ -273,6 +273,7 @@ pub enum Expr {
     IfExpr(IfExpr),
     BreakExpr(BreakExpr),
     ContinueExpr(ContinueExpr),
+    ArrayExpr(ArrayExpr),
 }
 
 impl AstNode for Expr {
@@ -291,7 +292,7 @@ impl AstNode for Expr {
             SyntaxKind::IfExpr => Expr::IfExpr(IfExpr(origin)),
             SyntaxKind::BreakExpr => Expr::BreakExpr(BreakExpr(origin)),
             SyntaxKind::ContinueExpr => Expr::ContinueExpr(ContinueExpr(origin)),
-            SyntaxKind::ArrayExpr => todo!(),
+            SyntaxKind::ArrayExpr => Expr::ArrayExpr(ArrayExpr(origin)),
             SyntaxKind::LetBinding => todo!(),
             SyntaxKind::NameRef => todo!(),
             _ => return None,
@@ -310,6 +311,7 @@ impl AstNode for Expr {
             Expr::IfExpr(e) => e.origin(),
             Expr::BreakExpr(e) => e.origin(),
             Expr::ContinueExpr(e) => e.origin(),
+            Expr::ArrayExpr(e) => e.origin(),
         }
     }
 }
@@ -675,6 +677,40 @@ impl AstNode for ContinueExpr {
         Self: Sized,
     {
         if origin.kind() == SyntaxKind::ContinueExpr {
+            Some(Self(origin))
+        } else {
+            None
+        }
+    }
+
+    fn origin(&self) -> &SyntaxNode {
+        &self.0
+    }
+}
+
+#[derive(Clone, Debug)]
+pub struct ArrayExpr(SyntaxNode);
+
+impl ArrayExpr {
+    pub fn open_bracket(&self) -> Option<SyntaxToken> {
+        token(&self.0, SyntaxKind::OpenBrack)
+    }
+
+    pub fn expr(&self) -> Option<Expr> {
+        child(&self.0)
+    }
+
+    pub fn close(&self) -> Option<SyntaxToken> {
+        token(&self.0, SyntaxKind::CloseBrack)
+    }
+}
+
+impl AstNode for ArrayExpr {
+    fn cast(origin: SyntaxNode) -> Option<Self>
+    where
+        Self: Sized,
+    {
+        if origin.kind() == SyntaxKind::ArrayExpr {
             Some(Self(origin))
         } else {
             None
