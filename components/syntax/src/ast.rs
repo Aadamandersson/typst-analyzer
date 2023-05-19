@@ -275,6 +275,7 @@ pub enum Expr {
     ContinueExpr(ContinueExpr),
     ArrayExpr(ArrayExpr),
     LetBinding(LetBinding),
+    NameRef(NameRef),
 }
 
 impl AstNode for Expr {
@@ -295,7 +296,7 @@ impl AstNode for Expr {
             SyntaxKind::ContinueExpr => Expr::ContinueExpr(ContinueExpr(origin)),
             SyntaxKind::ArrayExpr => Expr::ArrayExpr(ArrayExpr(origin)),
             SyntaxKind::LetBinding => Expr::LetBinding(LetBinding(origin)),
-            SyntaxKind::NameRef => todo!(),
+            SyntaxKind::NameRef => Expr::NameRef(NameRef(origin)),
             _ => return None,
         })
     }
@@ -314,6 +315,7 @@ impl AstNode for Expr {
             Expr::ContinueExpr(e) => e.origin(),
             Expr::ArrayExpr(e) => e.origin(),
             Expr::LetBinding(e) => e.origin(),
+            Expr::NameRef(e) => e.origin(),
         }
     }
 }
@@ -751,6 +753,32 @@ impl AstNode for LetBinding {
         Self: Sized,
     {
         if origin.kind() == SyntaxKind::LetBinding {
+            Some(Self(origin))
+        } else {
+            None
+        }
+    }
+
+    fn origin(&self) -> &SyntaxNode {
+        &self.0
+    }
+}
+
+#[derive(Clone, Debug)]
+pub struct NameRef(SyntaxNode);
+
+impl NameRef {
+    pub fn ident(&self) -> Option<SyntaxToken> {
+        token(&self.0, SyntaxKind::Ident)
+    }
+}
+
+impl AstNode for NameRef {
+    fn cast(origin: SyntaxNode) -> Option<Self>
+    where
+        Self: Sized,
+    {
+        if origin.kind() == SyntaxKind::NameRef {
             Some(Self(origin))
         } else {
             None
