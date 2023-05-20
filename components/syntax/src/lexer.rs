@@ -163,13 +163,13 @@ impl<'s> Lexer<'s> {
         // * error reporting
 
         if first == '.' {
-            self.eat_while(|ch| matches!(ch, '0'..='9'));
+            self.eat_while(|ch| ch.is_ascii_digit());
             return SyntaxKind::Float;
         }
 
-        self.eat_while(|ch| matches!(ch, '0'..='9'));
+        self.eat_while(|ch| ch.is_ascii_digit());
         if self.eat('.') {
-            self.eat_while(|ch| matches!(ch, '0'..='9'));
+            self.eat_while(|ch| ch.is_ascii_digit());
             return SyntaxKind::Float;
         }
 
