@@ -341,9 +341,9 @@ fn if_expr(p: &mut Parser) {
     block(p);
 
     p.eat_trivia();
-    if p.eat(SyntaxKind::Else) {
+    if p.eat(Token![else]) {
         p.eat_trivia();
-        if p.at(SyntaxKind::If) {
+        if p.at(Token![if]) {
             if_expr(p);
         } else {
             block(p);
@@ -380,7 +380,7 @@ fn parenthesized(p: &mut Parser) {
 
 fn content_block(p: &mut Parser) {
     p.start(SyntaxKind::ContentBlock);
-    p.expect(SyntaxKind::OpenBrack);
+    p.expect(Token!['[']);
 
     while !p.at(Token![eof]) && !p.at(Token![']']) {
         // Since we do not _parse_ markup yet, just eat the body
