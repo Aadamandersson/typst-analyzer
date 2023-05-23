@@ -196,3 +196,63 @@ impl From<SyntaxKind> for u16 {
         kind as u16
     }
 }
+
+#[macro_export]
+macro_rules! Token {
+    [ident] => { $crate::kind::SyntaxKind::Ident };
+    [int] => { $crate::kind::SyntaxKind::Int };
+    [float] => { $crate::kind::SyntaxKind::Float };
+    [string] => { $crate::kind::SyntaxKind::String };
+    [+] => { $crate::kind::SyntaxKind::Plus };
+    [-] => { $crate::kind::SyntaxKind::Minus };
+    [*] => { $crate::kind::SyntaxKind::Star };
+    [/] => { $crate::kind::SyntaxKind::Slash };
+    [=] => { $crate::kind::SyntaxKind::Eq };
+    [<] => { $crate::kind::SyntaxKind::Lt };
+    [>] => { $crate::kind::SyntaxKind::Gt };
+    [.] => { $crate::kind::SyntaxKind::Dot };
+    [+=] => { $crate::kind::SyntaxKind::PlusEq };
+    [-=] => { $crate::kind::SyntaxKind::MinusEq };
+    [/=] => { $crate::kind::SyntaxKind::SlashEq };
+    [!=] => { $crate::kind::SyntaxKind::Ne };
+    [==] => { $crate::kind::SyntaxKind::EqEq };
+    [=>] => { $crate::kind::SyntaxKind::Arrow };
+    [<=] => { $crate::kind::SyntaxKind::Le };
+    [>=] => { $crate::kind::SyntaxKind::Ge };
+    [..] => { $crate::kind::SyntaxKind::DotDot };
+    [_] => { $crate::kind::SyntaxKind::Underscore };
+    ['('] => { $crate::kind::SyntaxKind::OpenParen };
+    ['['] => { $crate::kind::SyntaxKind::OpenBrack };
+    ['{'] => { $crate::kind::SyntaxKind::OpenBrace };
+    [')'] => { $crate::kind::SyntaxKind::CloseParen };
+    [']'] => { $crate::kind::SyntaxKind::CloseBrack };
+    ['}'] => { $crate::kind::SyntaxKind::CloseBrace };
+    [,] => { $crate::kind::SyntaxKind::Comma };
+    [:] => { $crate::kind::SyntaxKind::Semi };
+    [;] => { $crate::kind::SyntaxKind::Colon };
+    [$] => { $crate::kind::SyntaxKind::Dollar };
+    [#] => { $crate::kind::SyntaxKind::Pound };
+    ['`'] => { $crate::kind::SyntaxKind::Backtick };
+    [and] => { $crate::kind::SyntaxKind::And };
+    [as] => { $crate::kind::SyntaxKind::As };
+    [auto] => { $crate::kind::SyntaxKind::Auto };
+    [break] => { $crate::kind::SyntaxKind::Break };
+    [continue] => { $crate::kind::SyntaxKind::Continue };
+    [else] => { $crate::kind::SyntaxKind::Else };
+    [false] => { $crate::kind::SyntaxKind::False };
+    [for] => { $crate::kind::SyntaxKind::For };
+    [if] => { $crate::kind::SyntaxKind::If };
+    [import] => { $crate::kind::SyntaxKind::Import };
+    [in] => { $crate::kind::SyntaxKind::In };
+    [include] => { $crate::kind::SyntaxKind::Include };
+    [let] => { $crate::kind::SyntaxKind::Let };
+    [none] => { $crate::kind::SyntaxKind::None };
+    [not] => { $crate::kind::SyntaxKind::Not };
+    [or] => { $crate::kind::SyntaxKind::Or };
+    [return] => { $crate::kind::SyntaxKind::Return };
+    [set] => { $crate::kind::SyntaxKind::Set };
+    [show] => { $crate::kind::SyntaxKind::Show };
+    [true] => { $crate::kind::SyntaxKind::True };
+    [while] => { $crate::kind::SyntaxKind::While };
+    [eof] => { $crate::kind::SyntaxKind::Eof };
+}
