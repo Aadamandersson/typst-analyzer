@@ -1,7 +1,7 @@
 use std::{iter::Peekable, str::Chars};
 use unicode_xid::UnicodeXID;
 
-use crate::kind::SyntaxKind;
+use crate::{kind::SyntaxKind, Token};
 
 const EOF_CHAR: char = '\0';
 
@@ -35,88 +35,88 @@ impl<'s> Lexer<'s> {
             '"' => self.lex_string(),
             '+' => {
                 if self.eat('=') {
-                    SyntaxKind::PlusEq
+                    Token![+=]
                 } else {
-                    SyntaxKind::Plus
+                    Token![+]
                 }
             }
             '-' => {
                 if self.eat('=') {
-                    SyntaxKind::MinusEq
+                    Token![-=]
                 } else {
-                    SyntaxKind::Minus
+                    Token![-]
                 }
             }
             '*' => {
                 if self.eat('=') {
-                    SyntaxKind::StarEq
+                    Token![*=]
                 } else {
-                    SyntaxKind::Star
+                    Token![*]
                 }
             }
             '/' => {
                 if self.eat('=') {
-                    SyntaxKind::SlashEq
+                    Token![/=]
                 } else if self.eat('/') {
                     self.lex_line_comment()
                 } else if self.eat('*') {
                     self.lex_block_comment()
                 } else {
-                    SyntaxKind::Slash
+                    Token![/]
                 }
             }
-            '!' if self.eat('=') => SyntaxKind::Ne,
+            '!' if self.eat('=') => Token![!=],
             '=' => {
                 if self.eat('=') {
-                    SyntaxKind::EqEq
+                    Token![==]
                 } else if self.eat('>') {
-                    SyntaxKind::Arrow
+                    Token![=>]
                 } else {
-                    SyntaxKind::Eq
+                    Token![=]
                 }
             }
             '<' => {
                 if self.eat('=') {
-                    SyntaxKind::Le
+                    Token![<=]
                 } else {
-                    SyntaxKind::Lt
+                    Token![<]
                 }
             }
             '>' => {
                 if self.eat('=') {
-                    SyntaxKind::Ge
+                    Token![>=]
                 } else {
-                    SyntaxKind::Gt
+                    Token![>]
                 }
             }
             '.' => {
                 if self.eat('.') {
-                    SyntaxKind::DotDot
+                    Token![..]
                 } else if self.peek().is_ascii_digit() {
                     self.lex_numeric(first)
                 } else {
-                    SyntaxKind::Dot
+                    Token![.]
                 }
             }
-            '(' => SyntaxKind::OpenParen,
-            '[' => SyntaxKind::OpenBrack,
-            '{' => SyntaxKind::OpenBrace,
-            ')' => SyntaxKind::CloseParen,
-            ']' => SyntaxKind::CloseBrack,
-            '}' => SyntaxKind::CloseBrace,
-            ',' => SyntaxKind::Comma,
-            ';' => SyntaxKind::Semi,
-            ':' => SyntaxKind::Colon,
-            '$' => SyntaxKind::Dollar,
-            '#' => SyntaxKind::Pound,
-            '`' => SyntaxKind::Backtick,
-            '\0' => SyntaxKind::Eof,
+            '(' => Token!['('],
+            '[' => Token!['['],
+            '{' => Token!['{'],
+            ')' => Token![')'],
+            ']' => Token![']'],
+            '}' => Token!['}'],
+            ',' => Token![,],
+            ';' => Token![;],
+            ':' => Token![:],
+            '$' => Token![$],
+            '#' => Token![#],
+            '`' => Token!['`'],
+            '\0' => Token![eof],
             _ => {
                 if Self::is_id_start(first) {
                     self.lex_ident(first)
                 } else if first.is_whitespace() {
                     self.eat_while(|c| c.is_whitespace());
-                    SyntaxKind::Whitespace
+                    Token![whitespace]
                 } else {
                     SyntaxKind::Error
                 }
@@ -130,29 +130,29 @@ impl<'s> Lexer<'s> {
     fn lex_ident(&mut self, first: char) -> SyntaxKind {
         let ident = self.accumulate(first, Self::is_id_continue);
         match &ident[..] {
-            "_" => SyntaxKind::Underscore,
-            "and" => SyntaxKind::And,
-            "as" => SyntaxKind::As,
-            "auto" => SyntaxKind::Auto,
-            "break" => SyntaxKind::Break,
-            "continue" => SyntaxKind::Continue,
-            "else" => SyntaxKind::Else,
-            "false" => SyntaxKind::False,
-            "for" => SyntaxKind::For,
-            "if" => SyntaxKind::If,
-            "import" => SyntaxKind::Import,
-            "in" => SyntaxKind::In,
-            "include" => SyntaxKind::Include,
-            "let" => SyntaxKind::Let,
-            "none" => SyntaxKind::None,
-            "not" => SyntaxKind::Not,
-            "or" => SyntaxKind::Or,
-            "return" => SyntaxKind::Return,
-            "set" => SyntaxKind::Set,
-            "show" => SyntaxKind::Show,
-            "true" => SyntaxKind::True,
-            "while" => SyntaxKind::While,
-            _ => SyntaxKind::Ident,
+            "_" => Token![_],
+            "and" => Token![and],
+            "as" => Token![as],
+            "auto" => Token![auto],
+            "break" => Token![break],
+            "continue" => Token![continue],
+            "else" => Token![else],
+            "false" => Token![false],
+            "for" => Token![for],
+            "if" => Token![if],
+            "import" => Token![import],
+            "in" => Token![in],
+            "include" => Token![include],
+            "let" => Token![let],
+            "none" => Token![none],
+            "not" => Token![not],
+            "or" => Token![or],
+            "return" => Token![return],
+            "set" => Token![set],
+            "show" => Token![show],
+            "true" => Token![true],
+            "while" => Token![while],
+            _ => Token![ident],
         }
     }
 
@@ -164,16 +164,16 @@ impl<'s> Lexer<'s> {
 
         if first == '.' {
             self.eat_while(|ch| ch.is_ascii_digit());
-            return SyntaxKind::Float;
+            return Token![float];
         }
 
         self.eat_while(|ch| ch.is_ascii_digit());
         if self.eat('.') {
             self.eat_while(|ch| ch.is_ascii_digit());
-            return SyntaxKind::Float;
+            return Token![float];
         }
 
-        SyntaxKind::Int
+        Token![int]
     }
 
     fn lex_string(&mut self) -> SyntaxKind {
@@ -183,13 +183,13 @@ impl<'s> Lexer<'s> {
             // TODO: report error
             SyntaxKind::Error
         } else {
-            SyntaxKind::String
+            Token![string]
         }
     }
 
     fn lex_line_comment(&mut self) -> SyntaxKind {
         self.eat_while(|ch| ch != '\r' && ch != '\n');
-        SyntaxKind::Comment
+        Token![comment]
     }
 
     fn lex_block_comment(&mut self) -> SyntaxKind {
@@ -204,7 +204,7 @@ impl<'s> Lexer<'s> {
             }
             self.bump();
         }
-        SyntaxKind::Comment
+        Token![comment]
     }
 
     /// Returns `true` and bumps the lexer if the next token
@@ -352,7 +352,7 @@ mod tests {
         let mut lexer = Lexer::new(src);
         let mut current = lexer.next();
 
-        while current.1 != SyntaxKind::Eof {
+        while current.1 != Token![eof] {
             output.push_str(&format!("{:?} {}", current.1, current.0));
             current = lexer.next();
         }
