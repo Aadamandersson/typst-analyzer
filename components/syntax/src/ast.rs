@@ -3,6 +3,7 @@ use std::marker::PhantomData;
 use crate::{
     kind::SyntaxKind,
     node::{SyntaxNode, SyntaxNodeChildren, SyntaxToken},
+    Token,
 };
 
 /// A trait for casting an untyped `SyntaxNode` to a typed AST.
@@ -38,9 +39,9 @@ impl UnOp {
     /// Tries to construct a `UnOp` from the given `SyntaxKind`.
     pub fn from_kind(kind: SyntaxKind) -> Option<Self> {
         Some(match kind {
-            SyntaxKind::Plus => Self::Pos,
-            SyntaxKind::Minus => Self::Neg,
-            SyntaxKind::Not => Self::Not,
+            Token![+] => Self::Pos,
+            Token![-] => Self::Neg,
+            Token![not] => Self::Not,
             _ => return None,
         })
     }
@@ -112,24 +113,24 @@ impl BinOp {
     /// Tries to construct a `BinOp` from the given `SyntaxKind`.
     pub fn from_kind(kind: SyntaxKind) -> Option<Self> {
         Some(match kind {
-            SyntaxKind::Plus => Self::Add,
-            SyntaxKind::Minus => Self::Sub,
-            SyntaxKind::Star => Self::Mul,
-            SyntaxKind::Slash => Self::Div,
-            SyntaxKind::EqEq => Self::Eq,
-            SyntaxKind::Ne => Self::Ne,
-            SyntaxKind::Lt => Self::Lt,
-            SyntaxKind::Le => Self::Le,
-            SyntaxKind::Gt => Self::Gt,
-            SyntaxKind::Ge => Self::Ge,
-            SyntaxKind::And => Self::And,
-            SyntaxKind::Or => Self::Or,
-            SyntaxKind::In => Self::In,
-            SyntaxKind::Eq => Self::Assign,
-            SyntaxKind::PlusEq => Self::AddAssign,
-            SyntaxKind::MinusEq => Self::SubAssign,
-            SyntaxKind::StarEq => Self::MulAssign,
-            SyntaxKind::SlashEq => Self::DivAssign,
+            Token![+] => Self::Add,
+            Token![-] => Self::Sub,
+            Token![*] => Self::Mul,
+            Token![/] => Self::Div,
+            Token![==] => Self::Eq,
+            Token![!=] => Self::Ne,
+            Token![<] => Self::Lt,
+            Token![<=] => Self::Le,
+            Token![>] => Self::Gt,
+            Token![>=] => Self::Ge,
+            Token![and] => Self::And,
+            Token![or] => Self::Or,
+            Token![in] => Self::In,
+            Token![=] => Self::Assign,
+            Token![+=] => Self::AddAssign,
+            Token![-=] => Self::SubAssign,
+            Token![*=] => Self::MulAssign,
+            Token![/=] => Self::DivAssign,
             _ => return None,
         })
     }
@@ -214,7 +215,7 @@ pub struct IdentPat(SyntaxNode);
 
 impl IdentPat {
     pub fn ident(&self) -> Option<SyntaxToken> {
-        token(&self.0, SyntaxKind::Ident)
+        token(&self.0, Token![ident])
     }
 }
 
@@ -240,7 +241,7 @@ pub struct WildcardPat(SyntaxNode);
 
 impl WildcardPat {
     pub fn underscore(&self) -> Option<SyntaxToken> {
-        token(&self.0, SyntaxKind::Underscore)
+        token(&self.0, Token![_])
     }
 }
 
@@ -325,7 +326,7 @@ pub struct CodeBlock(SyntaxNode);
 
 impl CodeBlock {
     pub fn open_brace(&self) -> Option<SyntaxToken> {
-        token(&self.0, SyntaxKind::OpenBrace)
+        token(&self.0, Token!['{'])
     }
 
     pub fn body(&self) -> ChildIter<Expr> {
@@ -333,7 +334,7 @@ impl CodeBlock {
     }
 
     pub fn close_brace(&self) -> Option<SyntaxToken> {
-        token(&self.0, SyntaxKind::CloseBrace)
+        token(&self.0, Token!['}'])
     }
 }
 
@@ -499,7 +500,7 @@ pub struct ParenExpr(SyntaxNode);
 
 impl ParenExpr {
     pub fn open_paren(&self) -> Option<SyntaxToken> {
-        token(&self.0, SyntaxKind::OpenParen)
+        token(&self.0, Token!['('])
     }
 
     pub fn expr(&self) -> Option<Expr> {
@@ -507,7 +508,7 @@ impl ParenExpr {
     }
 
     pub fn close_paren(&self) -> Option<SyntaxToken> {
-        token(&self.0, SyntaxKind::CloseParen)
+        token(&self.0, Token![')'])
     }
 }
 
@@ -581,7 +582,7 @@ impl ForExpr {
     }
 
     pub fn in_token(&self) -> Option<SyntaxToken> {
-        token(&self.0, SyntaxKind::In)
+        token(&self.0, Token![in])
     }
 
     pub fn collection(&self) -> Option<Expr> {
@@ -615,11 +616,11 @@ pub struct IfExpr(SyntaxNode);
 
 impl IfExpr {
     pub fn if_token(&self) -> Option<SyntaxToken> {
-        token(&self.0, SyntaxKind::If)
+        token(&self.0, Token![if])
     }
 
     pub fn else_token(&self) -> Option<SyntaxToken> {
-        token(&self.0, SyntaxKind::Else)
+        token(&self.0, Token![else])
     }
 }
 
@@ -645,7 +646,7 @@ pub struct BreakExpr(SyntaxNode);
 
 impl BreakExpr {
     pub fn token(&self) -> Option<SyntaxToken> {
-        token(&self.0, SyntaxKind::Break)
+        token(&self.0, Token![break])
     }
 }
 
@@ -671,7 +672,7 @@ pub struct ContinueExpr(SyntaxNode);
 
 impl ContinueExpr {
     pub fn token(&self) -> Option<SyntaxToken> {
-        token(&self.0, SyntaxKind::Continue)
+        token(&self.0, Token![continue])
     }
 }
 
@@ -697,7 +698,7 @@ pub struct ArrayExpr(SyntaxNode);
 
 impl ArrayExpr {
     pub fn open_bracket(&self) -> Option<SyntaxToken> {
-        token(&self.0, SyntaxKind::OpenBrack)
+        token(&self.0, Token!['['])
     }
 
     pub fn expr(&self) -> Option<Expr> {
@@ -705,7 +706,7 @@ impl ArrayExpr {
     }
 
     pub fn close(&self) -> Option<SyntaxToken> {
-        token(&self.0, SyntaxKind::CloseBrack)
+        token(&self.0, Token![']'])
     }
 }
 
@@ -731,7 +732,7 @@ pub struct LetBinding(SyntaxNode);
 
 impl LetBinding {
     pub fn let_token(&self) -> Option<SyntaxToken> {
-        token(&self.0, SyntaxKind::Let)
+        token(&self.0, Token![let])
     }
 
     pub fn pat(&self) -> Option<Pat> {
@@ -739,7 +740,7 @@ impl LetBinding {
     }
 
     pub fn eq_token(&self) -> Option<SyntaxToken> {
-        token(&self.0, SyntaxKind::Eq)
+        token(&self.0, Token![=])
     }
 
     pub fn init(&self) -> Option<Expr> {
@@ -769,7 +770,7 @@ pub struct NameRef(SyntaxNode);
 
 impl NameRef {
     pub fn ident(&self) -> Option<SyntaxToken> {
-        token(&self.0, SyntaxKind::Ident)
+        token(&self.0, Token![ident])
     }
 }
 
@@ -798,7 +799,7 @@ impl AstToken for Ident {
     where
         Self: Sized,
     {
-        if origin.kind() == SyntaxKind::Ident {
+        if origin.kind() == Token![ident] {
             Some(Self(origin))
         } else {
             None
@@ -818,7 +819,7 @@ impl AstToken for Int {
     where
         Self: Sized,
     {
-        if origin.kind() == SyntaxKind::Int {
+        if origin.kind() == Token![int] {
             Some(Self(origin))
         } else {
             None
@@ -838,7 +839,7 @@ impl AstToken for Float {
     where
         Self: Sized,
     {
-        if origin.kind() == SyntaxKind::Float {
+        if origin.kind() == Token![float] {
             Some(Self(origin))
         } else {
             None
@@ -858,7 +859,7 @@ impl AstToken for String {
     where
         Self: Sized,
     {
-        if origin.kind() == SyntaxKind::String {
+        if origin.kind() == Token![string] {
             Some(Self(origin))
         } else {
             None
@@ -878,7 +879,7 @@ impl AstToken for Comment {
     where
         Self: Sized,
     {
-        if origin.kind() == SyntaxKind::Comment {
+        if origin.kind() == Token![comment] {
             Some(Self(origin))
         } else {
             None
@@ -898,7 +899,7 @@ impl AstToken for Whitespace {
     where
         Self: Sized,
     {
-        if origin.kind() == SyntaxKind::Whitespace {
+        if origin.kind() == Token![whitespace] {
             Some(Self(origin))
         } else {
             None
