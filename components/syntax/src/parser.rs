@@ -3,6 +3,7 @@ use crate::{
     kind::SyntaxKind,
     lexer::Lexer,
     node::{Checkpoint, SyntaxError, SyntaxNode, SyntaxTreeBuilder},
+    Token,
 };
 
 pub fn parse(src: &str) -> (SyntaxNode, Vec<SyntaxError>) {
@@ -75,7 +76,7 @@ impl<'s> Parser<'s> {
     /// Adds the current token to the branch we are building and
     /// bumps the parser to the next token.
     fn bump(&mut self) {
-        if self.at(SyntaxKind::Eof) {
+        if self.at(Token![eof]) {
             return;
         }
 
@@ -120,14 +121,14 @@ impl<'s> Parser<'s> {
 
 fn code(p: &mut Parser) {
     p.start(SyntaxKind::Code);
-    while !p.at(SyntaxKind::Eof) {
+    while !p.at(Token![eof]) {
         // TODO: handle this properly when we support parsing markup.
         p.eat_trivia();
-        if p.at(SyntaxKind::Eof) {
+        if p.at(Token![eof]) {
             break;
         }
 
-        if p.at(SyntaxKind::Pound) {
+        if p.at(Token![#]) {
             p.bump();
         }
 
@@ -146,11 +147,11 @@ fn code(p: &mut Parser) {
 
 fn code_expr(p: &mut Parser) {
     match p.curr {
-        SyntaxKind::Let => let_binding(p),
-        SyntaxKind::While => while_expr(p),
-        SyntaxKind::For => for_expr(p),
-        SyntaxKind::Continue => continue_expr(p),
-        SyntaxKind::Break => break_expr(p),
+        Token![let] => let_binding(p),
+        Token![while] => while_expr(p),
+        Token![for] => for_expr(p),
+        Token![continue] => continue_expr(p),
+        Token![break] => break_expr(p),
         _ => code_prec_expr(p, 0),
     }
 }
@@ -161,11 +162,11 @@ fn let_binding(p: &mut Parser) {
     p.eat_trivia();
 
     let mut is_fn = false;
-    if p.at(SyntaxKind::Ident) {
+    if p.at(Token![ident]) {
         let cp = p.checkpoint();
         p.bump();
 
-        if p.at(SyntaxKind::OpenParen) {
+        if p.at(Token!['(']) {
             p.start_at(cp, SyntaxKind::FnPat);
             params(p);
             is_fn = true;
@@ -174,7 +175,7 @@ fn let_binding(p: &mut Parser) {
         }
 
         p.wrap();
-    } else if p.at(SyntaxKind::Underscore) {
+    } else if p.at(Token![_]) {
         p.start(SyntaxKind::WildcardPat);
         p.bump();
         p.wrap();
@@ -184,9 +185,9 @@ fn let_binding(p: &mut Parser) {
 
     p.eat_trivia();
     if is_fn {
-        p.expect(SyntaxKind::Eq);
+        p.expect(Token![=]);
         code_expr(p);
-    } else if p.eat(SyntaxKind::Eq) {
+    } else if p.eat(Token![=]) {
         code_expr(p);
     }
 
@@ -210,10 +211,10 @@ fn for_expr(p: &mut Parser) {
 
     let cp = p.checkpoint();
     // TODO: support destructuring syntax
-    if p.eat(SyntaxKind::Ident) {
+    if p.eat(Token![ident]) {
         p.start_at(cp, SyntaxKind::IdentPat);
         p.wrap();
-    } else if p.eat(SyntaxKind::Underscore) {
+    } else if p.eat(Token![_]) {
         p.start_at(cp, SyntaxKind::WildcardPat);
         p.wrap();
     } else {
@@ -221,7 +222,7 @@ fn for_expr(p: &mut Parser) {
     }
 
     p.eat_trivia();
-    p.expect(SyntaxKind::In);
+    p.expect(Token![in]);
     code_expr(p);
     block(p);
 
@@ -230,8 +231,8 @@ fn for_expr(p: &mut Parser) {
 
 fn block(p: &mut Parser) {
     match p.curr {
-        SyntaxKind::OpenBrack => content_block(p),
-        SyntaxKind::OpenBrace => code_block(p),
+        Token!['['] => content_block(p),
+        Token!['{'] => code_block(p),
         _ => p.error("expected block"),
     }
 }
@@ -252,14 +253,14 @@ fn params(p: &mut Parser) {
     p.start(SyntaxKind::Params);
     p.bump();
 
-    while !p.at(SyntaxKind::CloseParen) && !p.at(SyntaxKind::Eof) {
+    while !p.at(Token![')']) && !p.at(Token![eof]) {
         param(p);
-        if !p.eat(SyntaxKind::Comma) {
+        if !p.eat(Token![,]) {
             break;
         }
     }
 
-    p.expect(SyntaxKind::CloseParen);
+    p.expect(Token![')']);
     p.wrap();
 }
 
@@ -310,16 +311,12 @@ fn code_prec_expr(p: &mut Parser, min_prec: u8) {
 
 fn code_primary_expr(p: &mut Parser) {
     match p.curr {
-        SyntaxKind::Ident => name_ref(p),
-        SyntaxKind::If => if_expr(p),
-        SyntaxKind::OpenParen => parenthesized(p),
-        SyntaxKind::OpenBrack => content_block(p),
-        SyntaxKind::OpenBrace => code_block(p),
-        SyntaxKind::Int
-        | SyntaxKind::Float
-        | SyntaxKind::String
-        | SyntaxKind::True
-        | SyntaxKind::False => literal(p),
+        Token![ident] => name_ref(p),
+        Token![if] => if_expr(p),
+        Token!['('] => parenthesized(p),
+        Token!['['] => content_block(p),
+        Token!['{'] => code_block(p),
+        Token![int] | Token![float] | Token![string] | Token![true] | Token![false] => literal(p),
         _ => p.error("expected expression"),
     }
 }
@@ -362,16 +359,16 @@ fn parenthesized(p: &mut Parser) {
     p.bump();
 
     let mut elements = 0;
-    while !p.at(SyntaxKind::Eof) && !p.at(SyntaxKind::CloseParen) {
+    while !p.at(Token![eof]) && !p.at(Token![')']) {
         code_expr(p);
         elements += 1;
 
-        if !p.eat(SyntaxKind::Comma) {
+        if !p.eat(Token![,]) {
             break;
         }
     }
 
-    p.expect(SyntaxKind::CloseParen);
+    p.expect(Token![')']);
     if elements == 1 {
         p.start_at(cp, SyntaxKind::ParenExpr)
     } else {
@@ -385,24 +382,24 @@ fn content_block(p: &mut Parser) {
     p.start(SyntaxKind::ContentBlock);
     p.expect(SyntaxKind::OpenBrack);
 
-    while !p.at(SyntaxKind::Eof) && !p.at(SyntaxKind::CloseBrack) {
+    while !p.at(Token![eof]) && !p.at(Token![']']) {
         // Since we do not _parse_ markup yet, just eat the body
         p.bump();
     }
 
-    p.expect(SyntaxKind::CloseBrack);
+    p.expect(Token![']']);
     p.wrap();
 }
 
 fn code_block(p: &mut Parser) {
     p.start(SyntaxKind::CodeBlock);
-    p.expect(SyntaxKind::OpenBrace);
+    p.expect(Token!['{']);
 
-    while !p.at(SyntaxKind::Eof) && !p.at(SyntaxKind::CloseBrace) {
+    while !p.at(Token![eof]) && !p.at(Token!['}']) {
         code_expr(p);
     }
 
-    p.expect(SyntaxKind::CloseBrace);
+    p.expect(Token!['}']);
     p.wrap();
 }
 
