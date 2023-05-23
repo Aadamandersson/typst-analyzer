@@ -213,6 +213,7 @@ macro_rules! Token {
     [.] => { $crate::kind::SyntaxKind::Dot };
     [+=] => { $crate::kind::SyntaxKind::PlusEq };
     [-=] => { $crate::kind::SyntaxKind::MinusEq };
+    [*=] => { $crate::kind::SyntaxKind::StarEq };
     [/=] => { $crate::kind::SyntaxKind::SlashEq };
     [!=] => { $crate::kind::SyntaxKind::Ne };
     [==] => { $crate::kind::SyntaxKind::EqEq };
@@ -254,5 +255,7 @@ macro_rules! Token {
     [show] => { $crate::kind::SyntaxKind::Show };
     [true] => { $crate::kind::SyntaxKind::True };
     [while] => { $crate::kind::SyntaxKind::While };
+    [comment] => { $crate::kind::SyntaxKind::Comment };
+    [whitespace] => { $crate::kind::SyntaxKind::Whitespace };
     [eof] => { $crate::kind::SyntaxKind::Eof };
 }
